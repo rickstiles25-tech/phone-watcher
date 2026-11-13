@@ -7,44 +7,62 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: #09090b;
-      color: #fafafa;
+      background-color: #0b0b0d;
+      color: #f4f4f6;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       min-height: 100dvh;
       display: flex;
       flex-direction: column;
     }
 
+    /* Setup View */
     #setup-view {
       max-width: 480px;
       width: 100%;
       margin: 0 auto;
-      padding: 24px 20px;
+      padding: 24px 20px 40px;
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
     h1 { font-size: 1.65rem; font-weight: 700; letter-spacing: -0.02em; }
-    p.lead { font-size: 0.95rem; color: #a1a1aa; line-height: 1.45; }
-    .field { display: flex; flex-direction: column; gap: 6px; }
-    .field-header { display: flex; justify-content: space-between; align-items: center; }
-    label { font-size: 0.85rem; font-weight: 600; color: #d4d4d8; }
-    .hint { font-size: 0.78rem; color: #71717a; }
-    .hint a { color: #d97757; text-decoration: none; }
-    .link-btn {
-      background: none; border: none; color: #f87171; font-size: 0.78rem;
-      cursor: pointer; padding: 0; width: auto;
+    .lead { font-size: 0.95rem; color: #a1a1aa; line-height: 1.45; }
+    .card {
+      background: #16161a;
+      border: 1px solid #27272a;
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
+    label { font-size: 0.85rem; font-weight: 600; color: #d4d4d8; display: block; margin-bottom: 6px; }
+    .hint { font-size: 0.78rem; color: #71717a; margin-top: 5px; line-height: 1.35; }
     input[type="password"], select {
       width: 100%;
-      padding: 13px 14px;
+      padding: 12px 14px;
       border-radius: 10px;
-      border: 1px solid #27272a;
-      background: #18181b;
-      color: #fafafa;
+      border: 1px solid #3f3f46;
+      background: #09090b;
+      color: #ffffff;
       font-size: 1rem;
     }
-    button.primary {
+    .row-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .link-btn {
+      background: none;
+      border: none;
+      color: #f87171;
+      font-size: 0.8rem;
+      cursor: pointer;
+      padding: 4px 0;
+      text-decoration: underline;
+    }
+    .primary-btn {
       width: 100%;
       padding: 15px;
       border-radius: 12px;
@@ -54,295 +72,301 @@
       font-size: 1.05rem;
       font-weight: 700;
       cursor: pointer;
-      margin-top: 4px;
     }
+    .primary-btn:active { opacity: 0.9; }
     .tips {
-      background: #18181b;
-      border: 1px solid #27272a;
+      background: #121215;
+      border: 1px solid #222226;
       border-radius: 12px;
-      padding: 16px;
-      margin-top: 8px;
+      padding: 14px 16px;
     }
     .tips h2 { font-size: 0.9rem; color: #e4e4e7; margin-bottom: 8px; }
-    .tips ul { padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
-    .tips li { font-size: 0.84rem; color: #a1a1aa; line-height: 1.4; }
+    .tips ul { padding-left: 18px; color: #a1a1aa; font-size: 0.84rem; line-height: 1.5; display: flex; flex-direction: column; gap: 4px; }
 
-    #reader-view {
+    /* Active Watcher View */
+    #watcher-view {
       display: none;
       flex-direction: column;
       height: 100dvh;
       width: 100%;
-      overflow: hidden;
     }
-
     #cam-section {
-      background: #000;
+      background: #000000;
       border-bottom: 1px solid #27272a;
       padding: 10px 14px;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      flex-shrink: 0;
     }
-    #video-wrap {
+    #cam-wrapper {
       position: relative;
       width: 100%;
-      height: 150px;
+      max-height: 28dvh;
+      aspect-ratio: 16 / 9;
+      background: #050505;
       border-radius: 10px;
       overflow: hidden;
-      background: #111;
       border: 1px solid #27272a;
+      margin: 0 auto;
     }
     video {
       width: 100%;
       height: 100%;
       object-fit: cover;
       transform-origin: center center;
+      transition: transform 0.1s ease-out;
     }
-    .zoom-row {
+    #zoom-row {
       display: flex;
       align-items: center;
       gap: 10px;
+      font-size: 0.82rem;
+      color: #a1a1aa;
     }
-    .zoom-row span { font-size: 0.8rem; color: #a1a1aa; min-width: 44px; }
-    .zoom-row input[type="range"] { flex: 1; accent-color: #d97757; }
+    #zoom-row input[type="range"] {
+      flex: 1;
+      accent-color: #d97757;
+    }
+    #zoom-val {
+      min-width: 44px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: #e4e4e7;
+      font-weight: 600;
+    }
 
+    /* Controls Bar */
     #controls-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      padding: 10px 14px;
-      background: #121215;
+      gap: 6px;
+      padding: 8px 12px;
+      background: #141418;
       border-bottom: 1px solid #27272a;
-      flex-shrink: 0;
       flex-wrap: wrap;
     }
     #status-pill {
       font-size: 0.82rem;
       font-weight: 600;
-      color: #a1a1aa;
-      flex: 1;
-      min-width: 90px;
+      color: #4ade80;
+      margin-right: auto;
+      padding: 4px 8px;
+      background: #1c1c22;
+      border-radius: 6px;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .btn-group {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
     }
     .ctrl-btn {
       padding: 8px 11px;
       border-radius: 8px;
-      border: 1px solid #2e2e32;
-      background: #1e1e22;
-      color: #e4e4e7;
+      border: 1px solid #3f3f46;
+      background: #222228;
+      color: #f4f4f6;
       font-size: 0.82rem;
       font-weight: 600;
       cursor: pointer;
     }
-    .ctrl-btn.accent {
-      background: #d97757;
-      color: #09090b;
-      border-color: #d97757;
-    }
-    .ctrl-btn.danger {
-      color: #fca5a5;
-      border-color: #451a1a;
-      background: #221212;
-    }
+    .ctrl-btn:active { background: #32323a; }
+    .ctrl-btn.danger { color: #fca5a5; border-color: #7f1d1d; background: #2a1215; }
 
+    /* Full-width Unwrapped Error Banner */
     #error-banner {
       display: none;
-      background: #2a0e0e;
-      border-bottom: 1px solid #7f1d1d;
+      width: 100%;
+      background: #3b0d11;
+      border-bottom: 2px solid #ef4444;
       color: #fecaca;
       padding: 12px 14px;
-      font-size: 0.88rem;
+      font-size: 0.9rem;
       line-height: 1.4;
       word-break: break-word;
       white-space: pre-wrap;
-      flex-shrink: 0;
-      max-height: 35dvh;
-      overflow-y: auto;
     }
     #error-banner strong {
-      color: #f87171;
+      color: #ffffff;
       display: block;
       margin-bottom: 2px;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
     }
 
+    /* Main Answer Display */
     #answer-area {
       flex: 1;
-      padding: 22px 18px;
+      padding: 22px 20px;
       overflow-y: auto;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    #answer-display {
+    #answer-output {
       width: 100%;
-      font-size: clamp(2rem, 7.2vw, 3.6rem);
+      font-size: clamp(2rem, 7.5vw, 3.8rem);
       font-weight: 700;
       line-height: 1.24;
       color: #ffffff;
       word-break: break-word;
     }
-    #answer-display.waiting {
+    #answer-output.waiting {
       color: #52525b;
       font-weight: 500;
       text-align: center;
       font-size: clamp(1.4rem, 5vw, 2.2rem);
     }
 
+    /* Settings Modal */
     #settings-modal {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.82);
+      background: rgba(0, 0, 0, 0.82);
       z-index: 50;
-      align-items: center;
+      align-items: flex-end;
       justify-content: center;
-      padding: 20px;
     }
-    .modal-card {
+    #settings-sheet {
       background: #18181b;
-      border: 1px solid #27272a;
-      border-radius: 14px;
-      padding: 20px;
+      border-top: 1px solid #3f3f46;
+      border-radius: 18px 18px 0 0;
       width: 100%;
-      max-width: 400px;
+      max-width: 500px;
+      padding: 22px 20px 32px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 18px;
     }
-    .modal-card h2 { font-size: 1.2rem; }
+    #settings-sheet h2 { font-size: 1.2rem; }
+    .setting-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
     .setting-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 12px;
     }
-    .setting-row label { font-size: 0.92rem; color: #fafafa; }
-    .setting-row small { display: block; font-size: 0.76rem; color: #a1a1aa; font-weight: 400; }
-    input[type="checkbox"] { width: 20px; height: 20px; accent-color: #d97757; }
+    .setting-title { font-size: 0.95rem; font-weight: 600; color: #f4f4f6; }
+    .setting-desc { font-size: 0.8rem; color: #a1a1aa; }
+    input[type="checkbox"] {
+      width: 22px;
+      height: 22px;
+      accent-color: #d97757;
+    }
   </style>
 </head>
 <body>
 
+  <!-- Setup Screen -->
   <div id="setup-view">
-    <h1>Screen Watcher</h1>
-    <p class="lead">Prop this phone so its back camera sees your computer screen. When a question appears or changes, Claude reads it and displays the answer here in large text.</p>
+    <div>
+      <h1>Screen Watcher</h1>
+      <p class="lead">Prop this phone so its back camera sees your computer screen. When a new question appears, Claude's direct answer shows up here in big text.</p>
+    </div>
 
-    <div class="field">
-      <div class="field-header">
-        <label for="api-key">Anthropic API key</label>
-        <button type="button" class="link-btn" id="forget-key-btn">Forget saved key</button>
+    <div class="card">
+      <div>
+        <div class="row-between">
+          <label for="api-key-input" style="margin:0;">Anthropic API key</label>
+          <button type="button" class="link-btn" id="forget-key-btn">Forget saved key</button>
+        </div>
+        <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off" style="margin-top:6px;" />
+        <p class="hint">Saved only in this phone's browser. Get one at console.anthropic.com.</p>
       </div>
-      <input type="password" id="api-key" placeholder="sk-ant-..." autocomplete="off" />
-      <span class="hint">Saved only in this phone's browser. Get one at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>.</span>
-    </div>
 
-    <div class="field">
-      <label for="model-select">Model</label>
-      <select id="model-select">
-        <option value="claude-sonnet-4-6">Claude Sonnet 4.6 (Recommended)</option>
-        <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (Fastest)</option>
-        <option value="claude-opus-4-6">Claude Opus 4.6 (Deep Reasoning)</option>
-      </select>
-    </div>
+      <div>
+        <label for="model-select">Model</label>
+        <select id="model-select">
+          <option value="claude-sonnet-4-6">Claude Sonnet 4.6 (Recommended)</option>
+          <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (Fastest / Lowest cost)</option>
+        </select>
+      </div>
 
-    <button class="primary" id="start-btn">Start camera</button>
+      <button type="button" class="primary-btn" id="start-cam-btn">Start camera</button>
+    </div>
 
     <div class="tips">
       <h2>For the best reads</h2>
       <ul>
         <li>Keep the phone still: lean it on something. It only reads once the picture settles.</li>
-        <li>Fill the preview with the screen using the zoom slider.</li>
+        <li>Frame the monitor using the zoom slider (supports wide-angle &lt; 1.0&times; if your phone hardware allows, or 1.0&times;&ndash;4.0&times;).</li>
         <li>Angle the phone a little to dodge glare. Keep it on a charger for long sessions.</li>
       </ul>
     </div>
   </div>
 
-  <div id="reader-view">
+  <!-- Active Watcher Screen -->
+  <div id="watcher-view">
     <div id="cam-section">
-      <div id="video-wrap">
+      <div id="cam-wrapper">
         <video id="video" autoplay playsinline muted></video>
       </div>
-      <div class="zoom-row">
+      <div id="zoom-row">
         <span>Zoom</span>
-        <input type="range" id="zoom-slider" min="1" max="4" step="0.1" value="1" />
-        <span id="zoom-val" style="text-align:right;">1.0×</span>
+        <input type="range" id="zoom-slider" min="0.5" max="4" step="0.1" value="1" />
+        <span id="zoom-val">1.0&times;</span>
       </div>
     </div>
 
     <div id="controls-bar">
-      <div id="status-pill">Starting…</div>
-      <div class="btn-group">
-        <button class="ctrl-btn accent" id="read-now-btn">Read now</button>
-        <button class="ctrl-btn" id="toggle-cam-btn">Hide cam</button>
-        <button class="ctrl-btn" id="open-settings-btn">Settings</button>
-        <button class="ctrl-btn danger" id="stop-btn">Stop</button>
-      </div>
+      <span id="status-pill">Starting&hellip;</span>
+      <button type="button" class="ctrl-btn" id="read-now-btn">Read now</button>
+      <button type="button" class="ctrl-btn" id="toggle-cam-btn">Hide cam</button>
+      <button type="button" class="ctrl-btn" id="open-settings-btn">Settings</button>
+      <button type="button" class="ctrl-btn danger" id="stop-btn">Stop</button>
     </div>
 
-    <div id="error-banner">
-      <strong>Error Details</strong>
-      <span id="error-message"></span>
-    </div>
+    <!-- Full-width Error Banner directly below buttons -->
+    <div id="error-banner" role="alert"></div>
 
     <div id="answer-area">
-      <div id="answer-display" class="waiting">Waiting for a question…</div>
+      <div id="answer-output" class="waiting">Waiting for a question&hellip;</div>
     </div>
   </div>
 
+  <!-- Settings Modal -->
   <div id="settings-modal">
-    <div class="modal-card">
+    <div id="settings-sheet">
       <h2>Settings</h2>
 
-      <div class="field">
-        <div class="field-header">
-          <label for="sensitivity-slider">Sensitivity</label>
-          <span class="hint" id="sens-val">Medium</span>
+      <div class="setting-item">
+        <div class="setting-row">
+          <span class="setting-title">Sensitivity</span>
+          <span id="sens-val" class="setting-desc">Medium</span>
         </div>
-        <input type="range" id="sensitivity-slider" min="1" max="10" step="1" value="5" style="accent-color:#d97757;" />
-        <span class="hint">Higher reacts to smaller changes on screen</span>
+        <span class="setting-desc">Higher reacts to smaller changes on screen</span>
+        <input type="range" id="sens-slider" min="1" max="10" step="1" value="5" style="accent-color:#d97757; margin-top:4px;" />
       </div>
 
       <div class="setting-row">
-        <label for="vibrate-toggle">
-          Vibrate on new answer
-          <small>Android only; iPhones ignore it</small>
-        </label>
-        <input type="checkbox" id="vibrate-toggle" />
+        <div>
+          <div class="setting-title">Vibrate on new answer</div>
+          <div class="setting-desc">Android only; iPhones ignore it</div>
+        </div>
+        <input type="checkbox" id="vibrate-chk" />
       </div>
 
       <div class="setting-row">
-        <label for="beep-toggle">
-          Beep on new answer
-        </label>
-        <input type="checkbox" id="beep-toggle" />
+        <div>
+          <div class="setting-title">Beep on new answer</div>
+          <div class="setting-desc">Plays a soft chime when an answer updates</div>
+        </div>
+        <input type="checkbox" id="beep-chk" />
       </div>
 
-      <button class="primary" id="close-settings-btn">Done</button>
+      <button type="button" class="primary-btn" id="close-settings-btn">Done</button>
     </div>
   </div>
 
   <canvas id="capture-canvas" style="display:none;"></canvas>
-  <canvas id="diff-canvas" width="80" height="45" style="display:none;"></canvas>
+  <canvas id="diff-canvas" width="64" height="36" style="display:none;"></canvas>
 
   <script>
     const setupView = document.getElementById('setup-view');
-    const readerView = document.getElementById('reader-view');
-    const apiKeyInput = document.getElementById('api-key');
+    const watcherView = document.getElementById('watcher-view');
+    const apiKeyInput = document.getElementById('api-key-input');
     const forgetKeyBtn = document.getElementById('forget-key-btn');
     const modelSelect = document.getElementById('model-select');
-    const startBtn = document.getElementById('start-btn');
+    const startCamBtn = document.getElementById('start-cam-btn');
 
     const camSection = document.getElementById('cam-section');
     const video = document.getElementById('video');
@@ -354,52 +378,59 @@
     const toggleCamBtn = document.getElementById('toggle-cam-btn');
     const openSettingsBtn = document.getElementById('open-settings-btn');
     const stopBtn = document.getElementById('stop-btn');
-
     const errorBanner = document.getElementById('error-banner');
-    const errorMessage = document.getElementById('error-message');
-    const answerDisplay = document.getElementById('answer-display');
+    const answerOutput = document.getElementById('answer-output');
 
     const settingsModal = document.getElementById('settings-modal');
-    const sensitivitySlider = document.getElementById('sensitivity-slider');
+    const sensSlider = document.getElementById('sens-slider');
     const sensVal = document.getElementById('sens-val');
-    const vibrateToggle = document.getElementById('vibrate-toggle');
-    const beepToggle = document.getElementById('beep-toggle');
+    const vibrateChk = document.getElementById('vibrate-chk');
+    const beepChk = document.getElementById('beep-chk');
     const closeSettingsBtn = document.getElementById('close-settings-btn');
 
     const captureCanvas = document.getElementById('capture-canvas');
     const diffCanvas = document.getElementById('diff-canvas');
 
-    let stream = null;
+    let mediaStream = null;
+    let videoTrack = null;
+    let nativeZoomMin = 1;
+    let nativeZoomMax = 1;
+    let supportsNativeZoom = false;
     let watchInterval = null;
     let settleTimeout = null;
     let wakeLock = null;
-    let isBusy = false;
-    let camHidden = false;
-    let lastStableFrame = null;
-    let previousFrame = null;
-    let motionDetected = false;
-    let lastAnswerText = '';
+    let isReading = false;
+    let prevFrame = null;
+    let currentZoom = 1.0;
+    let lastAnswer = '';
 
-    apiKeyInput.value = localStorage.getItem('sw_api_key') || '';
-    if (localStorage.getItem('sw_model')) modelSelect.value = localStorage.getItem('sw_model');
-    if (localStorage.getItem('sw_zoom')) {
-      zoomSlider.value = localStorage.getItem('sw_zoom');
-      applyZoom(parseFloat(zoomSlider.value));
-    }
-    if (localStorage.getItem('sw_sens')) sensitivitySlider.value = localStorage.getItem('sw_sens');
-    vibrateToggle.checked = localStorage.getItem('sw_vibrate') === 'true';
-    beepToggle.checked = localStorage.getItem('sw_beep') === 'true';
-    updateSensLabel();
+    // Load saved settings
+    const savedKey = localStorage.getItem('sw_api_key') || '';
+    const savedModel = localStorage.getItem('sw_model') || 'claude-sonnet-4-6';
+    const savedSens = localStorage.getItem('sw_sens') || '5';
+    const savedVibrate = localStorage.getItem('sw_vibrate') === 'true';
+    const savedBeep = localStorage.getItem('sw_beep') === 'true';
 
-    function showError(msg) {
-      errorMessage.textContent = msg;
-      errorBanner.style.display = 'block';
+    apiKeyInput.value = savedKey;
+    modelSelect.value = savedModel;
+    sensSlider.value = savedSens;
+    vibrateChk.checked = savedVibrate;
+    beepChk.checked = savedBeep;
+    updateSensLabel(savedSens);
+
+    function updateSensLabel(v) {
+      const n = parseInt(v, 10);
+      if (n <= 3) sensVal.textContent = 'Low (' + n + ')';
+      else if (n <= 7) sensVal.textContent = 'Medium (' + n + ')';
+      else sensVal.textContent = 'High (' + n + ')';
     }
 
-    function clearError() {
-      errorMessage.textContent = '';
-      errorBanner.style.display = 'none';
-    }
+    sensSlider.addEventListener('input', () => {
+      updateSensLabel(sensSlider.value);
+      localStorage.setItem('sw_sens', sensSlider.value);
+    });
+    vibrateChk.addEventListener('change', () => localStorage.setItem('sw_vibrate', vibrateChk.checked));
+    beepChk.addEventListener('change', () => localStorage.setItem('sw_beep', beepChk.checked));
 
     forgetKeyBtn.addEventListener('click', () => {
       localStorage.removeItem('sw_api_key');
@@ -407,38 +438,49 @@
       alert('Saved API key removed from this browser.');
     });
 
-    zoomSlider.addEventListener('input', () => {
-      const z = parseFloat(zoomSlider.value);
-      localStorage.setItem('sw_zoom', z);
-      applyZoom(z);
-    });
-
-    function applyZoom(z) {
-      zoomVal.textContent = z.toFixed(1) + '×';
-      video.style.transform = `scale(${z})`;
+    function showError(title, detail) {
+      statusPill.textContent = 'Error';
+      statusPill.style.color = '#f87171';
+      errorBanner.style.display = 'block';
+      errorBanner.innerHTML = '<strong>' + escapeHtml(title) + '</strong>' + escapeHtml(detail);
     }
 
-    sensitivitySlider.addEventListener('input', () => {
-      localStorage.setItem('sw_sens', sensitivitySlider.value);
-      updateSensLabel();
-    });
-
-    function updateSensLabel() {
-      const v = parseInt(sensitivitySlider.value, 10);
-      sensVal.textContent = v <= 3 ? 'Low' : v <= 7 ? 'Medium' : 'High';
+    function clearError() {
+      errorBanner.style.display = 'none';
+      errorBanner.textContent = '';
     }
 
-    vibrateToggle.addEventListener('change', () => localStorage.setItem('sw_vibrate', vibrateToggle.checked));
-    beepToggle.addEventListener('change', () => localStorage.setItem('sw_beep', beepToggle.checked));
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
 
-    openSettingsBtn.addEventListener('click', () => { settingsModal.style.display = 'flex'; });
-    closeSettingsBtn.addEventListener('click', () => { settingsModal.style.display = 'none'; });
+    function setStatus(text, color) {
+      statusPill.textContent = text;
+      statusPill.style.color = color || '#4ade80';
+    }
 
-    toggleCamBtn.addEventListener('click', () => {
-      camHidden = !camHidden;
-      camSection.style.display = camHidden ? 'none' : 'flex';
-      toggleCamBtn.textContent = camHidden ? 'Show cam' : 'Hide cam';
-    });
+    function playChime() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(660, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.26);
+      } catch (e) {}
+    }
 
     async function requestWakeLock() {
       try {
@@ -449,12 +491,77 @@
     }
 
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && readerView.style.display === 'flex') {
+      if (document.visibilityState === 'visible' && watcherView.style.display === 'flex') {
         requestWakeLock();
       }
     });
 
-    startBtn.addEventListener('click', async () => {
+    async function applyZoom(val) {
+      currentZoom = val;
+      zoomVal.textContent = val.toFixed(1) + '×';
+
+      // Use hardware optical/ultra-wide zoom if the camera exposes zoom < 1 or > 1
+      if (supportsNativeZoom && videoTrack) {
+        const clampedNative = Math.min(nativeZoomMax, Math.max(nativeZoomMin, val));
+        try {
+          await videoTrack.applyConstraints({ advanced: [{ zoom: clampedNative }] });
+          // If hardware handled the full requested zoom, reset CSS scale to 1
+          if (Math.abs(clampedNative - val) < 0.05) {
+            video.style.transform = 'scale(1)';
+            return;
+          }
+          // Otherwise apply remaining zoom factor via CSS preview
+          const remainingScale = val / clampedNative;
+          video.style.transform = 'scale(' + remainingScale.toFixed(3) + ')';
+          return;
+        } catch (e) {}
+      }
+
+      // Fallback CSS zoom preview (values < 1 shrink preview inside frame; > 1 digitally crops/zooms)
+      video.style.transform = 'scale(' + val.toFixed(2) + ')';
+    }
+
+    zoomSlider.addEventListener('input', () => {
+      const val = parseFloat(zoomSlider.value);
+      applyZoom(val);
+    });
+
+    toggleCamBtn.addEventListener('click', () => {
+      const hidden = camSection.style.display === 'none';
+      camSection.style.display = hidden ? 'flex' : 'none';
+      toggleCamBtn.textContent = hidden ? 'Hide cam' : 'Show cam';
+    });
+
+    openSettingsBtn.addEventListener('click', () => {
+      settingsModal.style.display = 'flex';
+    });
+
+    closeSettingsBtn.addEventListener('click', () => {
+      settingsModal.style.display = 'none';
+    });
+
+    settingsModal.addEventListener('click', (e) => {
+      if (e.target === settingsModal) settingsModal.style.display = 'none';
+    });
+
+    stopBtn.addEventListener('click', () => {
+      clearInterval(watchInterval);
+      clearTimeout(settleTimeout);
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(t => t.stop());
+        mediaStream = null;
+        videoTrack = null;
+      }
+      watcherView.style.display = 'none';
+      setupView.style.display = 'flex';
+    });
+
+    readNowBtn.addEventListener('click', () => {
+      clearTimeout(settleTimeout);
+      analyzeCurrentFrame();
+    });
+
+    startCamBtn.addEventListener('click', async () => {
       const key = apiKeyInput.value.trim();
       if (!key) {
         alert('Please enter your Anthropic API key first.');
@@ -465,34 +572,16 @@
 
       clearError();
       setupView.style.display = 'none';
-      readerView.style.display = 'flex';
+      watcherView.style.display = 'flex';
+      setStatus('Starting…', '#facc15');
+
       await requestWakeLock();
-      await startCamera();
+      await initCamera();
     });
 
-    stopBtn.addEventListener('click', () => {
-      clearInterval(watchInterval);
-      clearTimeout(settleTimeout);
-      if (stream) stream.getTracks().forEach(t => t.stop());
-      stream = null;
-      lastStableFrame = null;
-      previousFrame = null;
-      clearError();
-      readerView.style.display = 'none';
-      setupView.style.display = 'flex';
-    });
-
-    readNowBtn.addEventListener('click', () => {
-      clearTimeout(settleTimeout);
-      motionDetected = false;
-      analyzeCurrentFrame(true);
-    });
-
-    async function startCamera() {
-      statusPill.textContent = 'Starting camera…';
-      statusPill.style.color = '#a1a1aa';
+    async function initCamera() {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
+        mediaStream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: { ideal: 'environment' },
             width: { ideal: 1920 },
@@ -500,129 +589,107 @@
           },
           audio: false
         });
-        video.srcObject = stream;
+        video.srcObject = mediaStream;
         await video.play();
-        statusPill.textContent = 'Watching…';
-        statusPill.style.color = '#4ade80';
 
-        setTimeout(() => analyzeCurrentFrame(true), 1400);
-        watchInterval = setInterval(pollMotionAndSettle, 700);
+        videoTrack = mediaStream.getVideoTracks()[0];
+        if (videoTrack && typeof videoTrack.getCapabilities === 'function') {
+          const caps = videoTrack.getCapabilities();
+          if (caps.zoom && typeof caps.zoom.min === 'number' && typeof caps.zoom.max === 'number') {
+            supportsNativeZoom = true;
+            nativeZoomMin = caps.zoom.min;
+            nativeZoomMax = caps.zoom.max;
+            zoomSlider.min = Math.min(0.5, nativeZoomMin).toString();
+            zoomSlider.max = Math.max(4, nativeZoomMax).toString();
+          }
+        }
+
+        await applyZoom(parseFloat(zoomSlider.value));
+        setStatus('Watching…', '#4ade80');
+
+        setTimeout(() => analyzeCurrentFrame(), 1200);
+        watchInterval = setInterval(pollScreenChange, 1200);
       } catch (err) {
-        statusPill.textContent = 'Camera error';
-        statusPill.style.color = '#f87171';
-        showError('Camera access failed: ' + (err.message || err));
+        showError('Camera Access Error', err.message || String(err));
       }
     }
 
-    function getSmallFrameData() {
+    function pollScreenChange() {
+      if (isReading || video.readyState < 2) return;
+
       const ctx = diffCanvas.getContext('2d', { willReadFrequently: true });
-      const vw = video.videoWidth || 1280;
-      const vh = video.videoHeight || 720;
-      const z = parseFloat(zoomSlider.value) || 1;
-      const sw = vw / z;
-      const sh = vh / z;
-      const sx = (vw - sw) / 2;
-      const sy = (vh - sh) / 2;
-      ctx.drawImage(video, sx, sy, sw, sh, 0, 0, diffCanvas.width, diffCanvas.height);
-      return ctx.getImageData(0, 0, diffCanvas.width, diffCanvas.height).data;
-    }
+      ctx.drawImage(video, 0, 0, diffCanvas.width, diffCanvas.height);
+      const data = ctx.getImageData(0, 0, diffCanvas.width, diffCanvas.height).data;
 
-    function computeDiffRatio(frameA, frameB) {
-      if (!frameA || !frameB) return 1;
-      let changed = 0;
-      const total = frameA.length / 4;
-      for (let i = 0; i < frameA.length; i += 4) {
-        const d = Math.abs(frameA[i] - frameB[i]) +
-                  Math.abs(frameA[i + 1] - frameB[i + 1]) +
-                  Math.abs(frameA[i + 2] - frameB[i + 2]);
-        if (d > 55) changed++;
-      }
-      return changed / total;
-    }
-
-    function pollMotionAndSettle() {
-      if (isBusy || video.readyState < 2) return;
-      const current = getSmallFrameData();
-      if (!previousFrame) {
-        previousFrame = current;
-        lastStableFrame = current;
+      if (!prevFrame) {
+        prevFrame = data;
         return;
       }
 
-      const sens = parseInt(sensitivitySlider.value, 10) || 5;
-      const threshold = 0.09 - (sens * 0.0075);
+      const sens = parseInt(sensSlider.value, 10) || 5;
+      const ratioThreshold = Math.max(0.01, (11 - sens) * 0.012);
 
-      const frameToFrameDiff = computeDiffRatio(current, previousFrame);
-      const fromLastReadDiff = computeDiffRatio(current, lastStableFrame);
-      previousFrame = current;
+      let diffPixels = 0;
+      const total = diffCanvas.width * diffCanvas.height;
+      for (let i = 0; i < data.length; i += 4) {
+        const delta =
+          Math.abs(data[i] - prevFrame[i]) +
+          Math.abs(data[i + 1] - prevFrame[i + 1]) +
+          Math.abs(data[i + 2] - prevFrame[i + 2]);
+        if (delta > 60) diffPixels++;
+      }
 
-      if (frameToFrameDiff > threshold) {
-        motionDetected = true;
-        statusPill.textContent = 'Screen changing…';
-        statusPill.style.color = '#facc15';
+      prevFrame = data;
+
+      if (diffPixels / total > ratioThreshold) {
+        setStatus('Settling…', '#facc15');
         clearTimeout(settleTimeout);
         settleTimeout = setTimeout(() => {
-          motionDetected = false;
-          analyzeCurrentFrame(false);
-        }, 1500);
-      } else if (!motionDetected && fromLastReadDiff > threshold) {
-        statusPill.textContent = 'Settling…';
-        statusPill.style.color = '#facc15';
-        clearTimeout(settleTimeout);
-        settleTimeout = setTimeout(() => {
-          analyzeCurrentFrame(false);
-        }, 1200);
+          analyzeCurrentFrame();
+        }, 1600);
       }
     }
 
-    function captureZoomedBase64() {
+    function getZoomedFrameBase64() {
       const vw = video.videoWidth || 1280;
       const vh = video.videoHeight || 720;
-      const z = parseFloat(zoomSlider.value) || 1;
-      const sw = vw / z;
-      const sh = vh / z;
-      const sx = (vw - sw) / 2;
-      const sy = (vh - sh) / 2;
 
-      const outW = Math.min(1440, Math.round(sw));
-      const outH = Math.round(outW * (sh / sw));
-      captureCanvas.width = outW;
-      captureCanvas.height = outH;
+      // If hardware zoom already handled < 1.0 or > 1.0, capture full sensor frame;
+      // otherwise if currentZoom > 1.0 digitally, crop the center.
+      let effectiveDigitalCrop = 1.0;
+      if (currentZoom > 1.0) {
+        if (supportsNativeZoom) {
+          const hw = Math.min(nativeZoomMax, Math.max(nativeZoomMin, currentZoom));
+          effectiveDigitalCrop = currentZoom / hw;
+        } else {
+          effectiveDigitalCrop = currentZoom;
+        }
+      }
 
+      const cropW = vw / effectiveDigitalCrop;
+      const cropH = vh / effectiveDigitalCrop;
+      const sx = (vw - cropW) / 2;
+      const sy = (vh - cropH) / 2;
+
+      const targetW = Math.min(1280, Math.round(cropW));
+      const targetH = Math.round(targetW * (cropH / cropW));
+
+      captureCanvas.width = targetW;
+      captureCanvas.height = targetH;
       const ctx = captureCanvas.getContext('2d');
-      ctx.drawImage(video, sx, sy, sw, sh, 0, 0, outW, outH);
-      return captureCanvas.toDataURL('image/jpeg', 0.82).split(',').pop();
+      ctx.drawImage(video, sx, sy, cropW, cropH, 0, 0, targetW, targetH);
+
+      const dataUrl = captureCanvas.toDataURL('image/jpeg', 0.82);
+      return dataUrl.split(',').pop();
     }
 
-    function playNotificationCue() {
-      if (vibrateToggle.checked && navigator.vibrate) {
-        navigator.vibrate(120);
-      }
-      if (beepToggle.checked) {
-        try {
-          const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.value = 660;
-          gain.gain.value = 0.08;
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start();
-          osc.stop(ctx.currentTime + 0.12);
-        } catch (e) {}
-      }
-    }
-
-    async function analyzeCurrentFrame(force) {
-      if (isBusy || video.readyState < 2) return;
-      isBusy = true;
-      statusPill.textContent = 'Reading…';
-      statusPill.style.color = '#38bdf8';
+    async function analyzeCurrentFrame() {
+      if (isReading || video.readyState < 2) return;
+      isReading = true;
+      setStatus('Reading…', '#facc15');
 
       try {
-        lastStableFrame = getSmallFrameData();
-        const imageBase64 = captureZoomedBase64();
+        const base64Image = getZoomedFrameBase64();
         const apiKey = (localStorage.getItem('sw_api_key') || '').trim();
         const model = localStorage.getItem('sw_model') || 'claude-sonnet-4-6';
 
@@ -637,7 +704,7 @@
           body: JSON.stringify({
             model: model,
             max_tokens: 350,
-            system: 'You are viewing a camera image of a computer screen. Read the screen carefully. If there is a question, prompt, or multiple-choice problem visible, answer it directly and concisely (for multiple-choice, state the option letter and answer). Do not repeat the question or add unnecessary filler. If no question is visible on the screen, reply with the exact word NONE.',
+            system: 'You are viewing a photo of a computer monitor. Read the text on the screen. If there is a question, prompt, or multiple-choice problem visible, output ONLY the direct, concise answer (if multiple-choice, include both the option letter and the answer text). Do not repeat the question or add filler. If there is no question visible on the screen, reply with the exact word NONE.',
             messages: [
               {
                 role: 'user',
@@ -647,12 +714,12 @@
                     source: {
                       type: 'base64',
                       media_type: 'image/jpeg',
-                      data: imageBase64
+                      data: base64Image
                     }
                   },
                   {
                     type: 'text',
-                    text: 'Answer any question visible on this screen, or reply NONE.'
+                    text: 'Answer any question visible on this monitor, or reply NONE.'
                   }
                 ]
               }
@@ -660,43 +727,48 @@
           })
         });
 
+        let data = null;
         const rawText = await response.text();
-        let data = {};
         try {
           data = JSON.parse(rawText);
-        } catch (e) {
-          throw new Error(`HTTP ${response.status}: ${rawText.slice(0, 300)}`);
+        } catch (parseErr) {
+          throw new Error('HTTP ' + response.status + ' (Non-JSON response): ' + rawText);
         }
 
         if (!response.ok) {
-          const errType = data.error?.type ? `[${data.error.type}] ` : '';
-          const errMsg = data.error?.message || rawText;
-          throw new Error(`HTTP ${response.status} ${errType}${errMsg}`);
+          const errType = data?.error?.type ? ' [' + data.error.type + ']' : '';
+          const errMsg = data?.error?.message || rawText;
+          throw new Error('HTTP ' + response.status + errType + ': ' + errMsg);
         }
 
         clearError();
-        const block = Array.isArray(data.content) ? data.content.find(b => b.type === 'text') : null;
-        const reply = (block?.text || '').trim();
+
+        const textBlock = Array.isArray(data.content)
+          ? data.content.find(item => item.type === 'text')
+          : null;
+        const reply = (textBlock?.text || '').trim();
 
         if (reply && reply.toUpperCase() !== 'NONE') {
-          answerDisplay.classList.remove('waiting');
-          answerDisplay.textContent = reply;
-          statusPill.textContent = 'Watching…';
-          statusPill.style.color = '#4ade80';
-          if (reply !== lastAnswerText) {
-            lastAnswerText = reply;
-            playNotificationCue();
+          answerOutput.classList.remove('waiting');
+          answerOutput.textContent = reply;
+          setStatus('Watching…', '#4ade80');
+
+          if (reply !== lastAnswer) {
+            lastAnswer = reply;
+            if (vibrateChk.checked && navigator.vibrate) {
+              navigator.vibrate([120, 60, 120]);
+            }
+            if (beepChk.checked) {
+              playChime();
+            }
           }
         } else {
-          statusPill.textContent = 'No question';
-          statusPill.style.color = '#a1a1aa';
+          setStatus('No question', '#a1a1aa');
         }
       } catch (err) {
-        statusPill.textContent = 'Error';
-        statusPill.style.color = '#f87171';
-        showError(err.message || String(err));
+        showError('Anthropic API / Network Error', err.message || String(err));
       } finally {
-        isBusy = false;
+        isReading = false;
       }
     }
   </script>
