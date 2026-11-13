@@ -18,17 +18,17 @@
 
     /* Setup Screen */
     #setup-screen {
-      padding: 22px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
       justify-content: center;
       height: 100%;
       overflow-y: auto;
     }
-    h1 { font-size: 1.45rem; color: #f5f5f5; }
-    p.sub { font-size: 0.9rem; color: #aaaaaa; line-height: 1.4; }
-    label { font-size: 0.82rem; color: #cccccc; margin-bottom: -8px; }
+    h1 { font-size: 1.4rem; color: #f5f5f5; }
+    p.sub { font-size: 0.9rem; color: #aaaaaa; line-height: 1.35; }
+    label { font-size: 0.82rem; color: #cccccc; margin-bottom: -6px; }
     input, select, button {
       width: 100%;
       padding: 13px;
@@ -46,12 +46,19 @@
       margin-top: 6px;
       cursor: pointer;
     }
+    button.secondary-setup {
+      background: #1f1f1f;
+      color: #bbb;
+      font-size: 0.85rem;
+      padding: 10px;
+      cursor: pointer;
+    }
     #setup-error {
       display: none;
-      background: #3b0d0d;
-      border: 1px solid #ef4444;
+      background: #3f1111;
+      border: 1px solid #f87171;
       color: #fecaca;
-      padding: 12px;
+      padding: 10px 12px;
       border-radius: 8px;
       font-size: 0.85rem;
       line-height: 1.35;
@@ -66,21 +73,21 @@
       width: 100%;
     }
 
-    /* Top: Giant Answer Area */
+    /* TOP: Large Answer Area */
     #answer-container {
       flex: 1;
-      padding: 18px 18px 12px 18px;
+      padding: 16px 18px;
       overflow-y: auto;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: left;
-      background: #000000;
+      align-items: flex-start;
+      justify-content: flex-start;
+      background: #050505;
+      border-bottom: 1px solid #222;
     }
     #answer-text {
-      font-size: clamp(1.9rem, 6.8vw, 3.4rem);
+      font-size: clamp(1.85rem, 6.5vw, 3.4rem);
       font-weight: 700;
-      line-height: 1.25;
+      line-height: 1.22;
       color: #ffffff;
       word-break: break-word;
       width: 100%;
@@ -88,18 +95,19 @@
     .placeholder {
       color: #444444 !important;
       font-weight: 500 !important;
+      font-size: 1.35rem !important;
+      align-self: center;
       text-align: center;
     }
 
-    /* Middle: Controls & Full Error Banner */
-    #controls-section {
+    /* MIDDLE: Controls & Full Error Banner */
+    #middle-bar {
       background: #111111;
-      border-top: 1px solid #262626;
-      border-bottom: 1px solid #262626;
-      padding: 10px 12px;
+      border-bottom: 1px solid #222;
+      padding: 8px 10px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
       flex-shrink: 0;
     }
     #status-row {
@@ -109,47 +117,36 @@
       gap: 8px;
     }
     #status-text {
-      font-size: 0.85rem;
-      font-weight: 600;
+      font-size: 0.82rem;
+      font-weight: 700;
       color: #4ade80;
-    }
-    #sub-status {
-      font-size: 0.75rem;
-      color: #9ca3af;
-      text-align: right;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     #diff-meter-wrap {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    #diff-label {
+      font-size: 0.72rem;
+      color: #999;
+      font-variant-numeric: tabular-nums;
     }
     #diff-bar-bg {
-      flex: 1;
+      width: 48px;
       height: 6px;
-      background: #222;
+      background: #262626;
       border-radius: 3px;
       overflow: hidden;
-      position: relative;
     }
     #diff-bar-fill {
       height: 100%;
       width: 0%;
-      background: #38bdf8;
-      transition: width 0.15s linear;
-    }
-    #diff-threshold-mark {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 2px;
-      background: #facc15;
-    }
-    #diff-label {
-      font-size: 0.72rem;
-      color: #9ca3af;
-      min-width: 78px;
-      text-align: right;
-      font-variant-numeric: tabular-nums;
+      background: #4ade80;
+      transition: width 0.15s ease;
     }
     #button-row {
       display: grid;
@@ -157,104 +154,109 @@
       gap: 6px;
     }
     .ctrl-btn {
-      padding: 9px 6px;
+      padding: 8px 4px;
       font-size: 0.78rem;
       font-weight: 600;
-      background: #1f1f1f;
+      background: #1e1e1e;
       border: 1px solid #333;
       color: #e5e5e5;
       border-radius: 8px;
+      text-align: center;
       cursor: pointer;
     }
-    .ctrl-btn:active { background: #333; }
-    .ctrl-btn.danger { border-color: #7f1d1d; color: #fca5a5; }
-
-    /* Full Unwrapped Error Banner */
+    .ctrl-btn.accent {
+      background: #2b211d;
+      border-color: #d97757;
+      color: #f3a68c;
+    }
     #error-banner {
       display: none;
-      background: #3b0d0d;
-      border: 1px solid #ef4444;
+      background: #3f1111;
+      border: 1px solid #f87171;
       color: #fecaca;
-      padding: 10px 12px;
+      padding: 8px 10px;
       border-radius: 8px;
       font-size: 0.82rem;
       line-height: 1.35;
       word-break: break-word;
-      white-space: pre-wrap;
+      max-height: 110px;
+      overflow-y: auto;
     }
 
-    /* Settings Drawer */
+    /* Drawer for Settings */
     #settings-drawer {
       display: none;
-      background: #181818;
-      border: 1px solid #2e2e2e;
-      border-radius: 8px;
-      padding: 10px;
+      background: #161616;
+      border-bottom: 1px solid #333;
+      padding: 10px 12px;
       flex-direction: column;
       gap: 8px;
+      font-size: 0.82rem;
     }
-    .setting-line {
+    .setting-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      font-size: 0.8rem;
-      color: #d4d4d4;
     }
-    .setting-line input[type="range"] {
-      width: 130px;
+    .setting-row input[type="range"] {
+      width: 55%;
       padding: 0;
     }
-    .setting-line input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-    }
 
-    /* Bottom: Camera Preview & Zoom */
+    /* BOTTOM: Camera Preview + Zoom */
     #camera-section {
-      background: #080808;
-      padding: 10px 12px 14px 12px;
+      background: #000;
       display: flex;
       flex-direction: column;
-      gap: 8px;
       flex-shrink: 0;
+      height: 36dvh;
+      min-height: 190px;
+    }
+    #camera-section.hidden-cam {
+      height: auto;
+      min-height: 0;
     }
     #preview-wrapper {
       position: relative;
+      flex: 1;
       width: 100%;
-      height: 155px;
-      background: #000;
-      border: 1px solid #2a2a2a;
-      border-radius: 10px;
       overflow: hidden;
+      background: #080808;
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+    #camera-section.hidden-cam #preview-wrapper {
+      display: none;
     }
     video {
       width: 100%;
       height: 100%;
       object-fit: contain;
       transform-origin: center center;
-      transition: transform 0.25s ease-out;
+      transition: transform 0.2s ease;
     }
     #bbox-overlay {
       position: absolute;
       border: 2px solid #facc15;
       background: rgba(250, 204, 21, 0.12);
-      border-radius: 4px;
       pointer-events: none;
       display: none;
+      border-radius: 4px;
     }
-    #zoom-row {
+    #zoom-bar {
       display: flex;
       align-items: center;
       gap: 8px;
+      padding: 6px 10px;
+      background: #0e0e0e;
+      border-top: 1px solid #222;
     }
     #zoom-label {
-      font-size: 0.78rem;
-      color: #cccccc;
-      min-width: 72px;
+      font-size: 0.76rem;
+      color: #bbb;
+      min-width: 62px;
       font-variant-numeric: tabular-nums;
     }
     #zoom-slider {
@@ -262,15 +264,16 @@
       padding: 0;
       height: 24px;
     }
-    #lens-btn {
+    #switch-lens-btn {
       width: auto;
-      padding: 7px 10px;
-      font-size: 0.75rem;
-      background: #1f1f1f;
-      border: 1px solid #333;
-      color: #e5e5e5;
-      border-radius: 7px;
-      flex-shrink: 0;
+      padding: 5px 9px;
+      font-size: 0.74rem;
+      background: #222;
+      border: 1px solid #3a3a3a;
+      color: #ddd;
+      border-radius: 6px;
+      white-space: nowrap;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -279,749 +282,663 @@
   <!-- Setup Screen -->
   <div id="setup-screen">
     <h1>Claude Screen Watcher</h1>
-    <p class="sub">Watches your monitor wide, confirms the screen text is stable across two consecutive reads, then shows only the direct answer at the top.</p>
+    <p class="sub">Watches your monitor, auto-zooms onto readable text, verifies stability with two consecutive identical reads, and shows only the final answer.</p>
 
     <label for="api-key">Anthropic API Key</label>
     <input type="password" id="api-key" placeholder="sk-ant-..." autocomplete="off" />
 
     <label for="model-select">Claude Model</label>
     <select id="model-select">
-      <option value="claude-sonnet-4-6">Claude Sonnet 4.6 (Balanced &amp; Accurate)</option>
-      <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (Fastest &amp; Lowest Cost)</option>
+      <option value="claude-sonnet-4-6" selected>Claude Sonnet 4.6 (Accurate)</option>
+      <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (Fastest)</option>
     </select>
 
-    <button type="button" class="primary" id="start-btn">Start Watching</button>
+    <button type="button" class="primary" id="start-btn" onclick="handleStartClick()">Start Watching</button>
+    <button type="button" class="secondary-setup" id="forget-btn" onclick="handleForgetKey()">Forget Saved Key</button>
     <div id="setup-error"></div>
   </div>
 
   <!-- Active Watcher Screen -->
   <div id="watcher-screen">
-    <!-- Top: Large Answer -->
+    <!-- TOP: Giant Answer -->
     <div id="answer-container">
-      <div id="answer-text" class="placeholder">Waiting for a question on screen...</div>
+      <div id="answer-text" class="placeholder">Waiting for a complete question on screen...</div>
     </div>
 
-    <!-- Middle: Status, Controls & Full Error Banner -->
-    <div id="controls-section">
+    <!-- MIDDLE: Status, Controls, Full Error -->
+    <div id="middle-bar">
       <div id="status-row">
-        <div id="status-text">Initializing camera...</div>
-        <div id="sub-status">Wide overview mode</div>
-      </div>
-
-      <div id="diff-meter-wrap">
-        <div id="diff-bar-bg">
-          <div id="diff-bar-fill"></div>
-          <div id="diff-threshold-mark" style="left: 12%;"></div>
+        <div id="status-text">Initializing...</div>
+        <div id="diff-meter-wrap">
+          <span id="diff-label">Diff: 0.0%</span>
+          <div id="diff-bar-bg"><div id="diff-bar-fill"></div></div>
         </div>
-        <div id="diff-label">Diff: 0.0%</div>
       </div>
 
       <div id="button-row">
-        <button type="button" class="ctrl-btn" id="read-now-btn">Read now</button>
-        <button type="button" class="ctrl-btn" id="toggle-cam-btn">Hide cam</button>
+        <button type="button" class="ctrl-btn accent" id="read-now-btn">Read now</button>
+        <button type="button" class="ctrl-btn" id="hide-cam-btn">Hide cam</button>
         <button type="button" class="ctrl-btn" id="settings-btn">Settings</button>
-        <button type="button" class="ctrl-btn danger" id="stop-btn">Stop</button>
+        <button type="button" class="ctrl-btn" id="stop-btn">Stop</button>
       </div>
 
-      <!-- Full Unwrapped Error Banner -->
       <div id="error-banner"></div>
+    </div>
 
-      <!-- Collapsible Settings -->
-      <div id="settings-drawer">
-        <div class="setting-line">
-          <span>Trigger sensitivity (<span id="sens-val">1.2</span>% diff)</span>
-          <input type="range" id="sens-slider" min="0.5" max="5.0" step="0.1" value="1.2" />
-        </div>
-        <div class="setting-line">
-          <span>Auto-zoom into content block</span>
-          <input type="checkbox" id="auto-zoom-chk" checked />
-        </div>
-        <div class="setting-line">
-          <span>Vibrate on new answer</span>
-          <input type="checkbox" id="vibrate-chk" />
-        </div>
-        <div class="setting-line">
-          <span>Beep on new answer</span>
-          <input type="checkbox" id="beep-chk" />
-        </div>
-        <button type="button" class="ctrl-btn danger" id="forget-key-btn">Forget saved key</button>
+    <!-- Collapsible Settings -->
+    <div id="settings-drawer">
+      <div class="setting-row">
+        <span>Trigger Sensitivity (<span id="sens-val">1.2</span>%)</span>
+        <input type="range" id="sens-slider" min="0.5" max="5.0" step="0.1" value="1.2" />
+      </div>
+      <div class="setting-row">
+        <span>Read-to-Read Delay (<span id="delay-val">500</span>ms)</span>
+        <input type="range" id="delay-slider" min="250" max="1500" step="50" value="500" />
       </div>
     </div>
 
-    <!-- Bottom: Camera Preview & Zoom -->
+    <!-- BOTTOM: Camera Preview + Zoom -->
     <div id="camera-section">
       <div id="preview-wrapper">
         <video id="video" autoplay playsinline muted></video>
         <div id="bbox-overlay"></div>
       </div>
-      <div id="zoom-row">
-        <span id="zoom-label">Zoom: 0.60x</span>
-        <input type="range" id="zoom-slider" min="0.25" max="2.50" step="0.05" value="0.60" />
-        <button type="button" id="lens-btn">Switch Lens</button>
+      <div id="zoom-bar">
+        <span id="zoom-label">Zoom: 0.50x</span>
+        <input type="range" id="zoom-slider" min="0.25" max="2.50" step="0.05" value="0.50" />
+        <button type="button" id="switch-lens-btn">Switch Lens</button>
       </div>
     </div>
   </div>
 
+  <!-- Offscreen Canvases -->
   <canvas id="capture-canvas" style="display:none;"></canvas>
   <canvas id="diff-canvas" width="160" height="120" style="display:none;"></canvas>
 
   <script>
-    (function () {
-      function safeGet(key, fallback) {
-        try {
-          const val = localStorage.getItem(key);
-          return val !== null ? val : fallback;
-        } catch (e) {
-          return fallback;
+    window.onerror = function(msg, url, line) {
+      var box = document.getElementById('setup-error');
+      if (box) {
+        box.style.display = 'block';
+        box.textContent = 'Script error (line ' + line + '): ' + msg;
+      }
+      return false;
+    };
+
+    function safeGetStorage(k) {
+      try { return window.localStorage.getItem(k); } catch (e) { return null; }
+    }
+    function safeSetStorage(k, v) {
+      try { window.localStorage.setItem(k, v); } catch (e) {}
+    }
+    function safeRemoveStorage(k) {
+      try { window.localStorage.removeItem(k); } catch (e) {}
+    }
+
+    var setupScreen = document.getElementById('setup-screen');
+    var watcherScreen = document.getElementById('watcher-screen');
+    var apiKeyInput = document.getElementById('api-key');
+    var modelSelect = document.getElementById('model-select');
+    var setupError = document.getElementById('setup-error');
+
+    var statusText = document.getElementById('status-text');
+    var diffLabel = document.getElementById('diff-label');
+    var diffBarFill = document.getElementById('diff-bar-fill');
+    var errorBanner = document.getElementById('error-banner');
+    var answerText = document.getElementById('answer-text');
+
+    var readNowBtn = document.getElementById('read-now-btn');
+    var hideCamBtn = document.getElementById('hide-cam-btn');
+    var settingsBtn = document.getElementById('settings-btn');
+    var stopBtn = document.getElementById('stop-btn');
+    var settingsDrawer = document.getElementById('settings-drawer');
+    var sensSlider = document.getElementById('sens-slider');
+    var sensVal = document.getElementById('sens-val');
+    var delaySlider = document.getElementById('delay-slider');
+    var delayVal = document.getElementById('delay-val');
+
+    var cameraSection = document.getElementById('camera-section');
+    var video = document.getElementById('video');
+    var bboxOverlay = document.getElementById('bbox-overlay');
+    var zoomSlider = document.getElementById('zoom-slider');
+    var zoomLabel = document.getElementById('zoom-label');
+    var switchLensBtn = document.getElementById('switch-lens-btn');
+
+    var captureCanvas = document.getElementById('capture-canvas');
+    var diffCanvas = document.getElementById('diff-canvas');
+
+    var stream = null;
+    var videoDevices = [];
+    var currentDeviceIdx = 0;
+    var pollTimer = null;
+    var settleTimer = null;
+    var isProcessing = false;
+    var wakeLock = null;
+
+    var prevGray = null;
+    var changePending = false;
+    var baseZoom = 0.50;
+    var triggerThreshold = 1.2;
+    var readDelayMs = 500;
+    var lastAnsweredHash = '';
+
+    // Restore saved preferences
+    var savedKey = safeGetStorage('claude_watcher_key');
+    var savedModel = safeGetStorage('claude_watcher_model');
+    if (savedKey) apiKeyInput.value = savedKey;
+    if (savedModel) modelSelect.value = savedModel;
+
+    function showSetupError(msg) {
+      setupError.style.display = 'block';
+      setupError.textContent = msg;
+    }
+
+    function showBannerError(msg) {
+      errorBanner.style.display = 'block';
+      errorBanner.textContent = msg;
+      statusText.textContent = 'Error';
+      statusText.style.color = '#f87171';
+    }
+
+    function clearBannerError() {
+      errorBanner.style.display = 'none';
+      errorBanner.textContent = '';
+    }
+
+    function setStatus(text, color) {
+      statusText.textContent = text;
+      statusText.style.color = color || '#4ade80';
+    }
+
+    function handleForgetKey() {
+      safeRemoveStorage('claude_watcher_key');
+      apiKeyInput.value = '';
+      showSetupError('Saved API key cleared from browser storage.');
+    }
+
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
         }
+      } catch (e) {}
+    }
+
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'visible' && watcherScreen.style.display === 'flex') {
+        requestWakeLock();
       }
-      function safeSet(key, val) {
+    });
+
+    async function handleStartClick() {
+      setupError.style.display = 'none';
+      var key = (apiKeyInput.value || '').trim();
+      if (!key) {
+        showSetupError('Please enter your Anthropic API key first.');
+        return;
+      }
+      safeSetStorage('claude_watcher_key', key);
+      safeSetStorage('claude_watcher_model', modelSelect.value);
+
+      setupScreen.style.display = 'none';
+      watcherScreen.style.display = 'flex';
+      clearBannerError();
+      setStatus('Starting camera...', '#facc15');
+
+      await requestWakeLock();
+      await initCameraAndDevices();
+    }
+
+    async function initCameraAndDevices() {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('Camera API unavailable. Ensure you opened this page via HTTPS.');
+        }
+        await startCameraStream(null);
         try {
-          localStorage.setItem(key, val);
-        } catch (e) {}
-      }
-      function safeRemove(key) {
-        try {
-          localStorage.removeItem(key);
-        } catch (e) {}
-      }
-
-      const setupScreen = document.getElementById('setup-screen');
-      const watcherScreen = document.getElementById('watcher-screen');
-      const apiKeyInput = document.getElementById('api-key');
-      const modelSelect = document.getElementById('model-select');
-      const startBtn = document.getElementById('start-btn');
-      const setupError = document.getElementById('setup-error');
-
-      const answerText = document.getElementById('answer-text');
-      const statusText = document.getElementById('status-text');
-      const subStatus = document.getElementById('sub-status');
-      const diffBarFill = document.getElementById('diff-bar-fill');
-      const diffThresholdMark = document.getElementById('diff-threshold-mark');
-      const diffLabel = document.getElementById('diff-label');
-      const errorBanner = document.getElementById('error-banner');
-
-      const readNowBtn = document.getElementById('read-now-btn');
-      const toggleCamBtn = document.getElementById('toggle-cam-btn');
-      const settingsBtn = document.getElementById('settings-btn');
-      const stopBtn = document.getElementById('stop-btn');
-      const settingsDrawer = document.getElementById('settings-drawer');
-      const sensSlider = document.getElementById('sens-slider');
-      const sensVal = document.getElementById('sens-val');
-      const autoZoomChk = document.getElementById('auto-zoom-chk');
-      const vibrateChk = document.getElementById('vibrate-chk');
-      const beepChk = document.getElementById('beep-chk');
-      const forgetKeyBtn = document.getElementById('forget-key-btn');
-
-      const cameraSection = document.getElementById('camera-section');
-      const video = document.getElementById('video');
-      const bboxOverlay = document.getElementById('bbox-overlay');
-      const zoomSlider = document.getElementById('zoom-slider');
-      const zoomLabel = document.getElementById('zoom-label');
-      const lensBtn = document.getElementById('lens-btn');
-      const captureCanvas = document.getElementById('capture-canvas');
-      const diffCanvas = document.getElementById('diff-canvas');
-
-      let stream = null;
-      let videoTrack = null;
-      let pollTimer = null;
-      let isProcessing = false;
-      let wakeLock = null;
-
-      let videoDevices = [];
-      let currentDeviceIdx = 0;
-
-      // Motion detection state
-      let baselineGray = null;
-      let motionPending = false;
-      let lastMotionTime = 0;
-      let pauseDetectionUntil = 0;
-      let lastAnsweredSignature = '';
-
-      // Restore saved settings
-      apiKeyInput.value = safeGet('csw_api_key', '');
-      modelSelect.value = safeGet('csw_model', 'claude-sonnet-4-6');
-      const savedSens = parseFloat(safeGet('csw_sens', '1.2'));
-      sensSlider.value = isNaN(savedSens) ? 1.2 : savedSens;
-      sensVal.textContent = parseFloat(sensSlider.value).toFixed(1);
-      diffThresholdMark.style.left = Math.min(100, parseFloat(sensSlider.value) * 10) + '%';
-
-      const savedZoom = parseFloat(safeGet('csw_zoom', '0.60'));
-      zoomSlider.value = isNaN(savedZoom) ? 0.60 : savedZoom;
-      zoomLabel.textContent = 'Zoom: ' + parseFloat(zoomSlider.value).toFixed(2) + 'x';
-
-      autoZoomChk.checked = safeGet('csw_auto_zoom', 'true') === 'true';
-      vibrateChk.checked = safeGet('csw_vibrate', 'false') === 'true';
-      beepChk.checked = safeGet('csw_beep', 'false') === 'true';
-
-      function showSetupError(msg) {
-        setupError.textContent = msg;
-        setupError.style.display = 'block';
-      }
-
-      function clearSetupError() {
-        setupError.textContent = '';
-        setupError.style.display = 'none';
-      }
-
-      function showError(msg) {
-        statusText.textContent = 'Error';
-        statusText.style.color = '#f87171';
-        errorBanner.textContent = msg;
-        errorBanner.style.display = 'block';
-      }
-
-      function clearError() {
-        errorBanner.textContent = '';
-        errorBanner.style.display = 'none';
-      }
-
-      async function requestWakeLock() {
-        try {
-          if ('wakeLock' in navigator && navigator.wakeLock) {
-            wakeLock = await navigator.wakeLock.request('screen');
+          var devices = await navigator.mediaDevices.enumerateDevices();
+          var cams = devices.filter(function(d) { return d.kind === 'videoinput'; });
+          if (cams.length > 0) {
+            videoDevices = cams;
+            // Prefer ultra-wide or back camera if labeled
+            var ultraIdx = cams.findIndex(function(d) {
+              var lbl = (d.label || '').toLowerCase();
+              return lbl.indexOf('ultra') !== -1 || lbl.indexOf('0.5') !== -1 || lbl.indexOf('wide') !== -1;
+            });
+            if (ultraIdx !== -1 && cams[ultraIdx].deviceId) {
+              currentDeviceIdx = ultraIdx;
+              await startCameraStream(cams[ultraIdx].deviceId);
+            }
           }
-        } catch (e) {}
+        } catch (enumErr) {}
+
+        startWatchLoop();
+      } catch (err) {
+        showBannerError('Camera Error: ' + (err.message || String(err)));
+      }
+    }
+
+    async function startCameraStream(deviceId) {
+      if (stream) {
+        stream.getTracks().forEach(function(t) { t.stop(); });
+      }
+      var videoConstraints = {
+        width: { ideal: 1600 },
+        height: { ideal: 1200 }
+      };
+      if (deviceId) {
+        videoConstraints.deviceId = { exact: deviceId };
+      } else {
+        videoConstraints.facingMode = { ideal: 'environment' };
       }
 
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && watcherScreen.style.display === 'flex') {
-          requestWakeLock();
-        }
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: videoConstraints,
+        audio: false
       });
+      video.srcObject = stream;
+      await video.play();
+      applyZoomLevel(baseZoom);
+      prevGray = null;
+    }
 
-      function playBeep() {
-        try {
-          const AudioCtx = window.AudioContext || window.webkitAudioContext;
-          if (!AudioCtx) return;
-          const ctx = new AudioCtx();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.value = 880;
-          gain.gain.value = 0.08;
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start();
-          setTimeout(() => { osc.stop(); ctx.close(); }, 120);
-        } catch (e) {}
-      }
+    function applyZoomLevel(zoomVal) {
+      zoomLabel.textContent = 'Zoom: ' + zoomVal.toFixed(2) + 'x';
+      var appliedHardware = false;
 
-      function applyBaseZoom(val) {
-        const z = parseFloat(val);
-        zoomLabel.textContent = 'Zoom: ' + z.toFixed(2) + 'x';
-        safeSet('csw_zoom', z.toFixed(2));
-
-        if (videoTrack && typeof videoTrack.getCapabilities === 'function') {
-          try {
-            const caps = videoTrack.getCapabilities();
+      try {
+        if (stream) {
+          var track = stream.getVideoTracks()[0];
+          if (track && typeof track.getCapabilities === 'function') {
+            var caps = track.getCapabilities();
             if (caps && caps.zoom) {
-              const clamped = Math.max(caps.zoom.min, Math.min(caps.zoom.max, z));
-              videoTrack.applyConstraints({ advanced: [{ zoom: clamped }] }).catch(() => {});
-            }
-          } catch (e) {}
-        }
-
-        if (z < 1.0) {
-          video.style.transform = 'scale(' + z.toFixed(2) + ')';
-        } else {
-          video.style.transform = 'scale(1)';
-        }
-        pauseDetectionUntil = Date.now() + 500;
-        baselineGray = null;
-      }
-
-      zoomSlider.addEventListener('input', (e) => {
-        applyBaseZoom(e.target.value);
-      });
-
-      sensSlider.addEventListener('input', (e) => {
-        const v = parseFloat(e.target.value);
-        sensVal.textContent = v.toFixed(1);
-        diffThresholdMark.style.left = Math.min(100, v * 10) + '%';
-        safeSet('csw_sens', v.toFixed(1));
-      });
-
-      autoZoomChk.addEventListener('change', () => safeSet('csw_auto_zoom', String(autoZoomChk.checked)));
-      vibrateChk.addEventListener('change', () => safeSet('csw_vibrate', String(vibrateChk.checked)));
-      beepChk.addEventListener('change', () => safeSet('csw_beep', String(beepChk.checked)));
-
-      settingsBtn.addEventListener('click', () => {
-        settingsDrawer.style.display = settingsDrawer.style.display === 'flex' ? 'none' : 'flex';
-      });
-
-      toggleCamBtn.addEventListener('click', () => {
-        const hidden = cameraSection.style.display === 'none';
-        cameraSection.style.display = hidden ? 'flex' : 'none';
-        toggleCamBtn.textContent = hidden ? 'Hide cam' : 'Show cam';
-      });
-
-      forgetKeyBtn.addEventListener('click', () => {
-        safeRemove('csw_api_key');
-        apiKeyInput.value = '';
-        stopWatcher();
-      });
-
-      stopBtn.addEventListener('click', stopWatcher);
-
-      function stopWatcher() {
-        if (pollTimer) {
-          clearInterval(pollTimer);
-          pollTimer = null;
-        }
-        if (stream) {
-          stream.getTracks().forEach(t => t.stop());
-          stream = null;
-          videoTrack = null;
-        }
-        isProcessing = false;
-        watcherScreen.style.display = 'none';
-        setupScreen.style.display = 'flex';
-      }
-
-      readNowBtn.addEventListener('click', () => {
-        motionPending = false;
-        runPipeline(true);
-      });
-
-      lensBtn.addEventListener('click', async () => {
-        if (videoDevices.length <= 1) return;
-        currentDeviceIdx = (currentDeviceIdx + 1) % videoDevices.length;
-        await initCameraStream(videoDevices[currentDeviceIdx].deviceId);
-      });
-
-      startBtn.addEventListener('click', async () => {
-        try {
-          clearSetupError();
-          const key = apiKeyInput.value.trim();
-          if (!key) {
-            showSetupError('Please enter your Anthropic API key (sk-ant-...).');
-            return;
-          }
-          safeSet('csw_api_key', key);
-          safeSet('csw_model', modelSelect.value);
-
-          setupScreen.style.display = 'none';
-          watcherScreen.style.display = 'flex';
-          clearError();
-          statusText.textContent = 'Starting camera...';
-          statusText.style.color = '#facc15';
-
-          await requestWakeLock();
-          await setupCameraAndDevices();
-        } catch (err) {
-          watcherScreen.style.display = 'none';
-          setupScreen.style.display = 'flex';
-          showSetupError('Startup error: ' + (err && err.message ? err.message : String(err)));
-        }
-      });
-
-      async function setupCameraAndDevices() {
-        await initCameraStream(null);
-        try {
-          if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
-            const all = await navigator.mediaDevices.enumerateDevices();
-            const cams = all.filter(d => d.kind === 'videoinput');
-            const backCams = cams.filter(d => /back|rear|environment/i.test(d.label));
-            videoDevices = backCams.length > 0 ? backCams : cams;
-
-            if (videoDevices.length > 1) {
-              lensBtn.style.display = 'inline-block';
-              const ultraIdx = videoDevices.findIndex(d => /ultra|wide|0\.5/i.test(d.label));
-              if (ultraIdx !== -1 && ultraIdx !== currentDeviceIdx) {
-                currentDeviceIdx = ultraIdx;
-                await initCameraStream(videoDevices[currentDeviceIdx].deviceId);
+              var clamped = Math.max(caps.zoom.min, Math.min(caps.zoom.max, zoomVal));
+              track.applyConstraints({ advanced: [{ zoom: clamped }] }).catch(function() {});
+              if (Math.abs(clamped - zoomVal) < 0.05) {
+                appliedHardware = true;
               }
-            } else {
-              lensBtn.style.display = 'none';
             }
           }
-        } catch (e) {}
+        }
+      } catch (e) {}
 
-        if (pollTimer) clearInterval(pollTimer);
-        pollTimer = setInterval(checkMotionLoop, 250);
-        setTimeout(() => runPipeline(true), 1200);
+      // Visual scale fallback so < 1.0x zooms out the preview cleanly without cropping
+      if (!appliedHardware) {
+        video.style.transform = 'scale(' + zoomVal + ')';
+      } else {
+        video.style.transform = 'scale(1)';
+      }
+    }
+
+    zoomSlider.addEventListener('input', function() {
+      baseZoom = parseFloat(zoomSlider.value) || 0.50;
+      applyZoomLevel(baseZoom);
+      prevGray = null;
+    });
+
+    switchLensBtn.addEventListener('click', async function() {
+      if (videoDevices.length <= 1) {
+        showBannerError('Only one camera lens was exposed by this mobile browser.');
+        return;
+      }
+      clearBannerError();
+      currentDeviceIdx = (currentDeviceIdx + 1) % videoDevices.length;
+      var nextDev = videoDevices[currentDeviceIdx];
+      setStatus('Switching lens...', '#facc15');
+      try {
+        await startCameraStream(nextDev.deviceId);
+        setStatus('Watching screen...', '#4ade80');
+      } catch (e) {
+        showBannerError('Could not switch lens: ' + e.message);
+      }
+    });
+
+    hideCamBtn.addEventListener('click', function() {
+      var hidden = cameraSection.classList.toggle('hidden-cam');
+      hideCamBtn.textContent = hidden ? 'Show cam' : 'Hide cam';
+    });
+
+    settingsBtn.addEventListener('click', function() {
+      var open = settingsDrawer.style.display === 'flex';
+      settingsDrawer.style.display = open ? 'none' : 'flex';
+    });
+
+    sensSlider.addEventListener('input', function() {
+      triggerThreshold = parseFloat(sensSlider.value) || 1.2;
+      sensVal.textContent = triggerThreshold.toFixed(1);
+    });
+
+    delaySlider.addEventListener('input', function() {
+      readDelayMs = parseInt(delaySlider.value, 10) || 500;
+      delayVal.textContent = readDelayMs;
+    });
+
+    stopBtn.addEventListener('click', function() {
+      clearInterval(pollTimer);
+      clearTimeout(settleTimer);
+      if (stream) {
+        stream.getTracks().forEach(function(t) { t.stop(); });
+        stream = null;
+      }
+      isProcessing = false;
+      watcherScreen.style.display = 'none';
+      setupScreen.style.display = 'flex';
+    });
+
+    readNowBtn.addEventListener('click', function() {
+      clearTimeout(settleTimer);
+      changePending = false;
+      runPipeline(true);
+    });
+
+    function computeNormalizedDiff() {
+      if (video.readyState < 2) return 0;
+      var w = diffCanvas.width;
+      var h = diffCanvas.height;
+      var ctx = diffCanvas.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(video, 0, 0, w, h);
+      var rgba = ctx.getImageData(0, 0, w, h).data;
+
+      var n = w * h;
+      var gray = new Float32Array(n);
+      var sum = 0;
+      for (var i = 0, p = 0; i < rgba.length; i += 4, p++) {
+        var g = 0.299 * rgba[i] + 0.587 * rgba[i + 1] + 0.114 * rgba[i + 2];
+        gray[p] = g;
+        sum += g;
+      }
+      var mean = sum / n || 1;
+      for (var j = 0; j < n; j++) {
+        gray[j] = (gray[j] / mean) * 128;
       }
 
-      async function initCameraStream(deviceId) {
-        if (stream) {
-          stream.getTracks().forEach(t => t.stop());
-        }
-        const videoConstraints = {
-          width: { ideal: 1920 },
-          height: { ideal: 1440 },
-          aspectRatio: { ideal: 1.333333 }
-        };
-        if (deviceId) {
-          videoConstraints.deviceId = { exact: deviceId };
-        } else {
-          videoConstraints.facingMode = { ideal: 'environment' };
-        }
-
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: videoConstraints,
-            audio: false
-          });
-        } catch (err) {
-          showError('Camera access failed: ' + err.message);
-          return;
-        }
-
-        videoTrack = stream.getVideoTracks()[0] || null;
-        video.srcObject = stream;
-        await video.play();
-
-        applyBaseZoom(zoomSlider.value);
-        baselineGray = null;
-        pauseDetectionUntil = Date.now() + 800;
-        statusText.textContent = 'Watching screen...';
-        statusText.style.color = '#4ade80';
+      if (!prevGray) {
+        prevGray = gray;
+        return 0;
       }
 
-      function computeNormalizedDiff() {
-        const w = diffCanvas.width;
-        const h = diffCanvas.height;
-        const ctx = diffCanvas.getContext('2d', { willReadFrequently: true });
-        ctx.drawImage(video, 0, 0, w, h);
-        const rgba = ctx.getImageData(0, 0, w, h).data;
-        const total = w * h;
-        const gray = new Float32Array(total);
-
-        let sum = 0;
-        for (let i = 0, p = 0; i < rgba.length; i += 4, p++) {
-          const lum = 0.299 * rgba[i] + 0.587 * rgba[i + 1] + 0.114 * rgba[i + 2];
-          gray[p] = lum;
-          sum += lum;
-        }
-        const mean = sum / total || 1;
-        for (let p = 0; p < total; p++) {
-          gray[p] = (gray[p] / mean) * 128;
-        }
-
-        if (!baselineGray) {
-          baselineGray = gray;
-          return 0;
-        }
-
-        let changed = 0;
-        for (let p = 0; p < total; p++) {
-          if (Math.abs(gray[p] - baselineGray[p]) > 16) {
-            changed++;
-          }
-        }
-        return (changed / total) * 100;
-      }
-
-      function checkMotionLoop() {
-        if (isProcessing || !video || video.readyState < 2) return;
-        if (Date.now() < pauseDetectionUntil) return;
-
-        const diffPct = computeNormalizedDiff();
-        const threshold = parseFloat(sensSlider.value) || 1.2;
-
-        diffBarFill.style.width = Math.min(100, diffPct * 10) + '%';
-        diffLabel.textContent = 'Diff: ' + diffPct.toFixed(1) + '%';
-
-        if (diffPct >= threshold) {
-          if (!motionPending) {
-            motionPending = true;
-            statusText.textContent = 'Change detected...';
-            statusText.style.color = '#38bdf8';
-          }
-          lastMotionTime = Date.now();
-        } else if (motionPending) {
-          const settledMs = Date.now() - lastMotionTime;
-          if (settledMs >= 650) {
-            motionPending = false;
-            runPipeline(false);
-          }
+      var changed = 0;
+      for (var k = 0; k < n; k++) {
+        if (Math.abs(gray[k] - prevGray[k]) > 18) {
+          changed++;
         }
       }
+      prevGray = gray;
+      return (changed / n) * 100;
+    }
 
-      function captureCropBase64(box) {
-        const vw = video.videoWidth || 1600;
-        const vh = video.videoHeight || 1200;
+    function startWatchLoop() {
+      clearInterval(pollTimer);
+      setStatus('Watching screen...', '#4ade80');
+      setTimeout(function() { runPipeline(true); }, 1200);
 
-        let sx = 0, sy = 0, sw = vw, sh = vh;
-        if (box) {
-          sx = Math.max(0, Math.floor(box.x1 * vw));
-          sy = Math.max(0, Math.floor(box.y1 * vh));
-          sw = Math.max(64, Math.min(vw - sx, Math.floor((box.x2 - box.x1) * vw)));
-          sh = Math.max(64, Math.min(vh - sy, Math.floor((box.y2 - box.y1) * vh)));
+      pollTimer = setInterval(function() {
+        if (isProcessing) return;
+        var pct = computeNormalizedDiff();
+        diffLabel.textContent = 'Diff: ' + pct.toFixed(1) + '%';
+        var barW = Math.min(100, (pct / Math.max(0.5, triggerThreshold * 2)) * 100);
+        diffBarFill.style.width = barW + '%';
+        diffBarFill.style.background = pct >= triggerThreshold ? '#facc15' : '#4ade80';
+
+        if (pct >= triggerThreshold) {
+          changePending = true;
+          setStatus('Screen changing...', '#facc15');
+          clearTimeout(settleTimer);
+          settleTimer = setTimeout(function() {
+            if (changePending && !isProcessing) {
+              changePending = false;
+              runPipeline(false);
+            }
+          }, 650);
         }
+      }, 300);
+    }
 
-        const maxDim = 1568;
-        const scale = Math.min(1, maxDim / Math.max(sw, sh));
-        captureCanvas.width = Math.round(sw * scale);
-        captureCanvas.height = Math.round(sh * scale);
+    function captureCropBase64(box) {
+      var vw = video.videoWidth || 1280;
+      var vh = video.videoHeight || 960;
 
-        const ctx = captureCanvas.getContext('2d');
-        ctx.drawImage(video, sx, sy, sw, sh, 0, 0, captureCanvas.width, captureCanvas.height);
-        const dataUrl = captureCanvas.toDataURL('image/jpeg', 0.88);
-        return dataUrl.split(',').pop();
+      var x1 = 0, y1 = 0, x2 = 1, y2 = 1;
+      if (box && box.length === 4) {
+        x1 = Math.max(0, Math.min(0.95, box[0]));
+        y1 = Math.max(0, Math.min(0.95, box[1]));
+        x2 = Math.max(x1 + 0.05, Math.min(1, box[2]));
+        y2 = Math.max(y1 + 0.05, Math.min(1, box[3]));
       }
 
-      function showZoomOverlay(box) {
-        if (!box) {
-          bboxOverlay.style.display = 'none';
-          return;
-        }
-        bboxOverlay.style.left = (box.x1 * 100).toFixed(1) + '%';
-        bboxOverlay.style.top = (box.y1 * 100).toFixed(1) + '%';
-        bboxOverlay.style.width = ((box.x2 - box.x1) * 100).toFixed(1) + '%';
-        bboxOverlay.style.height = ((box.y2 - box.y1) * 100).toFixed(1) + '%';
-        bboxOverlay.style.display = 'block';
+      var sx = Math.round(x1 * vw);
+      var sy = Math.round(y1 * vh);
+      var sw = Math.max(40, Math.round((x2 - x1) * vw));
+      var sh = Math.max(40, Math.round((y2 - y1) * vh));
 
-        const boxW = Math.max(0.25, box.x2 - box.x1);
-        const boxH = Math.max(0.25, box.y2 - box.y1);
-        const zoomFactor = Math.min(2.4, Math.max(1.0, 0.90 / Math.max(boxW, boxH)));
-        const cx = ((box.x1 + box.x2) / 2) * 100;
-        const cy = ((box.y1 + box.y2) / 2) * 100;
+      var maxDim = 1400;
+      var scale = Math.min(1, maxDim / Math.max(sw, sh));
+      captureCanvas.width = Math.round(sw * scale);
+      captureCanvas.height = Math.round(sh * scale);
 
-        video.style.transformOrigin = cx.toFixed(1) + '% ' + cy.toFixed(1) + '%';
-        video.style.transform = 'scale(' + zoomFactor.toFixed(2) + ')';
-      }
+      var ctx = captureCanvas.getContext('2d');
+      ctx.drawImage(video, sx, sy, sw, sh, 0, 0, captureCanvas.width, captureCanvas.height);
+      var dataUrl = captureCanvas.toDataURL('image/jpeg', 0.85);
+      return dataUrl.split(',').pop();
+    }
 
-      function resetZoomToWide() {
+    function showBoundingBox(box) {
+      if (!box || box.length !== 4) {
         bboxOverlay.style.display = 'none';
-        video.style.transformOrigin = 'center center';
-        const baseZ = parseFloat(zoomSlider.value) || 0.60;
-        video.style.transform = baseZ < 1.0 ? 'scale(' + baseZ.toFixed(2) + ')' : 'scale(1)';
-        baselineGray = null;
-        pauseDetectionUntil = Date.now() + 650;
+        return;
       }
+      bboxOverlay.style.display = 'block';
+      bboxOverlay.style.left = (box[0] * 100).toFixed(1) + '%';
+      bboxOverlay.style.top = (box[1] * 100).toFixed(1) + '%';
+      bboxOverlay.style.width = ((box[2] - box[0]) * 100).toFixed(1) + '%';
+      bboxOverlay.style.height = ((box[3] - box[1]) * 100).toFixed(1) + '%';
+    }
 
-      async function callClaude(systemPrompt, userText, base64Jpeg, maxTokens) {
-        const apiKey = safeGet('csw_api_key', '');
-        const model = safeGet('csw_model', 'claude-sonnet-4-6');
+    async function callClaude(systemPrompt, userText, base64Img, maxTokens) {
+      var apiKey = safeGetStorage('claude_watcher_key') || (apiKeyInput.value || '').trim();
+      var model = safeGetStorage('claude_watcher_model') || modelSelect.value || 'claude-sonnet-4-6';
 
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01',
-            'anthropic-dangerous-direct-browser-access': 'true'
-          },
-          body: JSON.stringify({
-            model: model,
-            max_tokens: maxTokens,
-            system: systemPrompt,
-            messages: [
-              {
-                role: 'user',
-                content: [
-                  {
-                    type: 'image',
-                    source: {
-                      type: 'base64',
-                      media_type: 'image/jpeg',
-                      data: base64Jpeg
-                    }
-                  },
-                  {
-                    type: 'text',
-                    text: userText
-                  }
-                ]
-              }
-            ]
-          })
+      var contentArr = [];
+      if (base64Img) {
+        contentArr.push({
+          type: 'image',
+          source: {
+            type: 'base64',
+            media_type: 'image/jpeg',
+            data: base64Img
+          }
         });
+      }
+      contentArr.push({ type: 'text', text: userText });
 
-        let data = null;
-        try {
-          data = await response.json();
-        } catch (e) {
-          throw new Error('HTTP ' + response.status + ': Invalid JSON response from Anthropic');
+      var resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: model,
+          max_tokens: maxTokens || 350,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: contentArr }]
+        })
+      });
+
+      var data = await resp.json();
+      if (!resp.ok) {
+        var errType = (data && data.error && data.error.type) ? data.error.type : ('HTTP ' + resp.status);
+        var errMsg = (data && data.error && data.error.message) ? data.error.message : JSON.stringify(data);
+        throw new Error(errType + ': ' + errMsg);
+      }
+
+      var block = Array.isArray(data.content) ? data.content.find(function(b) { return b.type === 'text'; }) : null;
+      return (block && block.text ? block.text : '').trim();
+    }
+
+    function normalizeWords(str) {
+      return (str || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter(Boolean);
+    }
+
+    function computeWordSimilarity(a, b) {
+      var wa = normalizeWords(a);
+      var wb = normalizeWords(b);
+      if (wa.length === 0 && wb.length === 0) return 1;
+      if (wa.length === 0 || wb.length === 0) return 0;
+
+      var counts = {};
+      for (var i = 0; i < wa.length; i++) {
+        counts[wa[i]] = (counts[wa[i]] || 0) + 1;
+      }
+      var matches = 0;
+      for (var j = 0; j < wb.length; j++) {
+        if (counts[wb[j]] > 0) {
+          matches++;
+          counts[wb[j]]--;
+        }
+      }
+      return (2 * matches) / (wa.length + wb.length);
+    }
+
+    function sleep(ms) {
+      return new Promise(function(resolve) { setTimeout(resolve, ms); });
+    }
+
+    async function runPipeline(force) {
+      if (isProcessing || video.readyState < 2) return;
+      isProcessing = true;
+      clearBannerError();
+
+      try {
+        // Stage 1: Wide overview to locate all readable content
+        setStatus('Locating content...', '#facc15');
+        var wideB64 = captureCropBase64(null);
+        var locPrompt = 'Locate ALL readable text content on the computer monitor in this image (do not narrow to just one paragraph; enclose the entire text area from top to bottom and left to right with a comfortable margin). Return ONLY a JSON object with normalized coordinates from 0.0 to 1.0 like {"box":[x1,y1,x2,y2],"hasText":true}. If no readable text is present, return {"box":[0,0,1,1],"hasText":false}.';
+        var locRaw = await callClaude('You output only valid JSON.', locPrompt, wideB64, 120);
+
+        var box = [0, 0, 1, 1];
+        var hasText = true;
+        var jsonMatch = locRaw.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try {
+            var parsed = JSON.parse(jsonMatch[0]);
+            if (typeof parsed.hasText === 'boolean') hasText = parsed.hasText;
+            if (Array.isArray(parsed.box) && parsed.box.length === 4) {
+              box = [
+                Math.max(0, Number(parsed.box[0]) - 0.06),
+                Math.max(0, Number(parsed.box[1]) - 0.06),
+                Math.min(1, Number(parsed.box[2]) + 0.06),
+                Math.min(1, Number(parsed.box[3]) + 0.06)
+              ];
+            }
+          } catch (parseErr) {}
         }
 
-        if (!response.ok) {
-          const errType = data && data.error && data.error.type ? data.error.type : 'api_error';
-          const errMsg = data && data.error && data.error.message ? data.error.message : JSON.stringify(data);
-          throw new Error('HTTP ' + response.status + ' (' + errType + '): ' + errMsg);
+        if (!hasText && !force) {
+          bboxOverlay.style.display = 'none';
+          setStatus('Watching (no text)', '#4ade80');
+          prevGray = null;
+          isProcessing = false;
+          return;
         }
 
-        const textBlock = Array.isArray(data.content) ? data.content.find(b => b.type === 'text') : null;
-        return (textBlock && textBlock.text ? textBlock.text : '').trim();
-      }
+        // Stage 2: Zoom onto the full content box and read twice in a row until identical
+        showBoundingBox(box);
+        var zoomFactor = Math.min(2.5, 1 / Math.max(0.35, Math.max(box[2] - box[0], box[3] - box[1])));
+        applyZoomLevel(Math.max(baseZoom, zoomFactor));
 
-      function normalizeTextForCompare(str) {
-        return (str || '')
-          .toLowerCase()
-          .replace(/[^a-z0-9\s]/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-      }
+        var prevTranscript = null;
+        var verifiedTranscript = null;
+        var maxReads = 5;
 
-      function areReadsConsistent(t1, t2) {
-        const n1 = normalizeTextForCompare(t1);
-        const n2 = normalizeTextForCompare(t2);
-        if (!n1 || !n2) return false;
-        if (n1 === n2) return true;
-
-        // Word-level Jaccard similarity >= 0.92 handles minor OCR punctuation/glare flicker while catching scrolling/transitioning text
-        const w1 = n1.split(' ');
-        const w2 = n2.split(' ');
-        if (Math.abs(w1.length - w2.length) > 2) return false;
-
-        const set1 = new Set(w1);
-        const set2 = new Set(w2);
-        let inter = 0;
-        set1.forEach(w => { if (set2.has(w)) inter++; });
-        const union = new Set([...w1, ...w2]).size || 1;
-        return (inter / union) >= 0.92;
-      }
-
-      function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-      }
-
-      async function runPipeline(isManual) {
-        if (isProcessing || !video || video.readyState < 2) return;
-        isProcessing = true;
-        clearError();
-
-        try {
-          let targetBox = null;
-
-          // Stage 1: Locate full readable content block on wide frame
-          if (autoZoomChk.checked) {
-            statusText.textContent = '1/3 Locating content...';
-            statusText.style.color = '#facc15';
-            const wideB64 = captureCropBase64(null);
-
-            const locSys = 'You locate all readable text content on a computer monitor photo. Return ONLY valid JSON with normalized coordinates [0.0 to 1.0] enclosing ALL visible text, questions, and answer options on the screen (do not narrow to just one paragraph): {"has_text": true, "x1": 0.0, "y1": 0.0, "x2": 1.0, "y2": 1.0}. If no readable text is present, return {"has_text": false}.';
-            const locRaw = await callClaude(locSys, 'Find the bounding box of all readable text on this monitor.', wideB64, 120);
-
-            const jsonMatch = locRaw.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              const parsed = JSON.parse(jsonMatch[0]);
-              if (parsed.has_text === false && !isManual) {
-                statusText.textContent = 'No text detected';
-                statusText.style.color = '#4ade80';
-                resetZoomToWide();
-                return;
-              }
-              if (typeof parsed.x1 === 'number' && typeof parsed.y1 === 'number' && typeof parsed.x2 === 'number' && typeof parsed.y2 === 'number') {
-                const pad = 0.08;
-                targetBox = {
-                  x1: Math.max(0, parsed.x1 - pad),
-                  y1: Math.max(0, parsed.y1 - pad),
-                  x2: Math.min(1, parsed.x2 + pad),
-                  y2: Math.min(1, parsed.y2 + pad)
-                };
-                showZoomOverlay(targetBox);
-                await sleep(220);
-              }
-            }
-          }
-
-          // Stage 2: Double-read verification loop until two consecutive reads match
-          const maxAttempts = 5;
-          let previousTranscript = null;
-          let confirmedTranscript = null;
-          let confirmedCropB64 = null;
-
-          const transcribeSys = 'You are an accurate OCR reader looking at a computer monitor. Transcribe the visible text and any questions/options faithfully so they can be verified for screen stability. If there is no complete question visible, output NONE. Do not answer the question yet—only output the exact visible text or NONE.';
-
-          for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-            statusText.textContent = '2/3 Verifying read ' + attempt + '/' + maxAttempts + '...';
-            statusText.style.color = '#38bdf8';
-
-            const cropB64 = captureCropBase64(targetBox);
-            const currentTranscript = await callClaude(
-              transcribeSys,
-              'Transcribe the visible text on this monitor cleanly, or reply NONE.',
-              cropB64,
-              450
-            );
-
-            if (!currentTranscript || currentTranscript.toUpperCase() === 'NONE') {
-              if (previousTranscript === 'NONE') {
-                statusText.textContent = 'No complete question';
-                statusText.style.color = '#4ade80';
-                subStatus.textContent = 'Confirmed empty (' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ')';
-                return;
-              }
-              previousTranscript = 'NONE';
-              await sleep(450);
-              continue;
-            }
-
-            if (previousTranscript && previousTranscript !== 'NONE' && areReadsConsistent(previousTranscript, currentTranscript)) {
-              confirmedTranscript = currentTranscript;
-              confirmedCropB64 = cropB64;
-              break;
-            }
-
-            previousTranscript = currentTranscript;
-            subStatus.textContent = 'Screen still settling, re-reading...';
-            await sleep(450);
-          }
-
-          if (!confirmedTranscript) {
-            statusText.textContent = 'Screen unstable';
-            statusText.style.color = '#facc15';
-            subStatus.textContent = 'Text kept changing across reads';
-            return;
-          }
-
-          // Stage 3: Solve using the confirmed image + verified transcript
-          statusText.textContent = '3/3 Solving confirmed text...';
-          statusText.style.color = '#facc15';
-
-          const answerSys = [
-            'You are viewing a verified photo and OCR transcript of a computer monitor.',
-            '1. Scan from top to bottom to find where each question begins and ends.',
-            '2. Ignore any partial or cut-off question at the very top or bottom edge of the screen.',
-            '3. Focus ONLY on the question that is completely visible on the screen (along with all its answer choices, if multiple-choice).',
-            '4. Output ONLY the direct final answer. Do NOT repeat, quote, or summarize the question. Do NOT include lead-in phrases like "The answer is".',
-            '5. If there is no complete question visible, reply with the exact word NONE.'
-          ].join(' ');
-
-          const finalReply = await callClaude(
-            answerSys,
-            'Verified screen text:
-' + confirmedTranscript + '
-
-Return ONLY the direct answer to the complete question shown, or NONE.',
-            confirmedCropB64,
-            300
+        for (var attempt = 1; attempt <= maxReads; attempt++) {
+          setStatus('Verifying text (' + attempt + '/' + maxReads + ')...', '#facc15');
+          var cropB64 = captureCropBase64(box);
+          var transcript = await callClaude(
+            'Transcribe all readable text visible in this image cleanly and accurately. Output ONLY the transcribed text, nothing else.',
+            'Transcribe all visible text.',
+            cropB64,
+            700
           );
 
-          const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          subStatus.textContent = 'Verified & answered ' + nowStr;
-
-          if (finalReply && finalReply.toUpperCase() !== 'NONE') {
-            answerText.classList.remove('placeholder');
-            answerText.textContent = finalReply;
-            statusText.textContent = 'Answer ready';
-            statusText.style.color = '#4ade80';
-
-            const sig = normalizeTextForCompare(confirmedTranscript);
-            if (sig !== lastAnsweredSignature) {
-              lastAnsweredSignature = sig;
-              if (vibrateChk.checked && navigator.vibrate) {
-                navigator.vibrate([120, 60, 120]);
-              }
-              if (beepChk.checked) {
-                playBeep();
-              }
-            }
-          } else {
-            statusText.textContent = 'No complete question';
-            statusText.style.color = '#4ade80';
+          if (!transcript || transcript.length < 4) {
+            break;
           }
-        } catch (err) {
-          showError(err && err.message ? err.message : String(err));
-        } finally {
-          resetZoomToWide();
-          isProcessing = false;
+
+          if (prevTranscript !== null) {
+            var sim = computeWordSimilarity(prevTranscript, transcript);
+            if (sim >= 0.92) {
+              verifiedTranscript = transcript;
+              break;
+            }
+          }
+          prevTranscript = transcript;
+
+          if (attempt < maxReads) {
+            await sleep(readDelayMs);
+          }
         }
+
+        if (!verifiedTranscript) {
+          setStatus('Screen unstable — waiting...', '#facc15');
+          bboxOverlay.style.display = 'none';
+          applyZoomLevel(baseZoom);
+          prevGray = null;
+          isProcessing = false;
+          return;
+        }
+
+        // Avoid re-answering the exact same verified screen unless user tapped Read now
+        var contentHash = normalizeWords(verifiedTranscript).slice(0, 40).join(' ');
+        if (!force && contentHash && contentHash === lastAnsweredHash) {
+          setStatus('Watching (unchanged)', '#4ade80');
+          bboxOverlay.style.display = 'none';
+          applyZoomLevel(baseZoom);
+          prevGray = null;
+          isProcessing = false;
+          return;
+        }
+
+        // Stage 3: Solve the complete question using verified text + zoomed image
+        setStatus('Answering...', '#38bdf8');
+        var finalCropB64 = captureCropBase64(box);
+        var solveSystem = [
+          'You are reading a computer monitor image along with its verified OCR transcript.',
+          '1. Scan from top to bottom to see where each question begins and ends.',
+          '2. Ignore any partial or cut-off question at the top or bottom edge of the screen.',
+          '3. Find the question that is COMPLETELY visible on the screen (including all of its answer choices if multiple choice).',
+          '4. Output ONLY the direct final answer to that complete question.',
+          '5. NEVER repeat, quote, or summarize the question. NEVER write introductory phrases like "The answer is". If multiple-choice, output only the option letter and answer text. If there is no complete question visible, output NONE.'
+        ].join(' ');
+
+        var solveUser = 'Verified screen text:\n' + verifiedTranscript + '\n\nReturn ONLY the direct final answer for the question completely visible on screen, or NONE.';
+        var answer = await callClaude(solveSystem, solveUser, finalCropB64, 300);
+
+        if (answer && answer.toUpperCase() !== 'NONE') {
+          lastAnsweredHash = contentHash;
+          answerText.classList.remove('placeholder');
+          answerText.textContent = answer;
+          setStatus('Answered — watching next', '#4ade80');
+        } else {
+          setStatus('No complete question', '#4ade80');
+        }
+      } catch (err) {
+        showBannerError(err.message || String(err));
+      } finally {
+        // Stage 4: Zoom back out and reset motion baseline
+        bboxOverlay.style.display = 'none';
+        applyZoomLevel(baseZoom);
+        await sleep(300);
+        prevGray = null;
+        isProcessing = false;
       }
-    })();
+    }
   </script>
 </body>
 </html>
