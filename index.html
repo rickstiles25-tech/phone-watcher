@@ -1,707 +1,665 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b0d10">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<title>Card Reader</title>
-<style>
-  :root {
-    --bg: #0b0d10;
-    --panel: #15181d;
-    --line: #262b33;
-    --text: #f4f4f5;
-    --muted: #9aa1ab;
-    --accent: #ffb020;
-    --ok: #3ccf7a;
-    --bad: #ff5d5d;
-    --radius: 14px;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    -webkit-tap-highlight-color: transparent;
-    overscroll-behavior: none;
-  }
-  [hidden] { display: none !important; }
-  button, select, input { font: inherit; color: inherit; }
-  button {
-    min-height: 44px; padding: 0 16px; border-radius: 10px;
-    border: 1px solid var(--line); background: var(--panel); cursor: pointer;
-  }
-  button.primary { background: var(--accent); border-color: var(--accent); color: #1a1200; font-weight: 700; }
-  button:active { transform: translateY(1px); }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Screen Question Answerer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #000000;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: none;
+    }
 
-  /* ---------- Setup ---------- */
-  #setup { max-width: 480px; margin: 0 auto; padding: 32px 16px calc(32px + env(safe-area-inset-bottom)); }
-  #setup h1 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.01em; }
-  #setup p.lead { color: var(--muted); margin: 0 0 24px; }
-  .field { display: block; margin-bottom: 18px; }
-  .field > span { display: block; font-weight: 600; margin-bottom: 6px; }
-  .field input, .field select {
-    width: 100%; min-height: 48px; padding: 0 12px; border-radius: 10px;
-    border: 1px solid var(--line); background: var(--panel);
-  }
-  .field small { display: block; color: var(--muted); margin-top: 6px; }
-  .field small a { color: var(--accent); }
-  #startBtn { width: 100%; min-height: 54px; font-size: 18px; margin-top: 6px; }
-  .linkish { background: none; border: 0; color: var(--muted); text-decoration: underline; padding: 0; min-height: 0; }
-  .msg { margin: 14px 0 0; color: var(--bad); }
-  .msg:empty { display: none; }
-  .tips { margin-top: 28px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); color: var(--muted); font-size: 14px; }
-  .tips b { color: var(--text); }
-  .tips ul { margin: 6px 0 0; padding-left: 18px; }
+    /* Setup Screen */
+    #setup-screen {
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+      height: 100%;
+    }
+    h1 { font-size: 1.6rem; font-weight: 700; color: #ffffff; }
+    p.sub { font-size: 0.95rem; color: #aaaaaa; line-height: 1.4; }
+    label { font-size: 0.85rem; font-weight: 600; color: #cccccc; margin-top: 4px; }
+    .hint { font-size: 0.78rem; color: #777777; margin-top: -8px; }
+    .hint a { color: #d97757; text-decoration: none; }
+    .row-between { display: flex; justify-content: space-between; align-items: center; }
+    .link-btn {
+      background: none;
+      border: none;
+      color: #f87171;
+      font-size: 0.8rem;
+      padding: 0;
+      width: auto;
+      cursor: pointer;
+    }
 
-  /* ---------- Running ---------- */
-  #run {
-    height: 100dvh; display: flex; flex-direction: column;
-    padding: calc(8px + env(safe-area-inset-top)) 12px calc(8px + env(safe-area-inset-bottom));
-    gap: 8px;
-  }
-  #previewBox { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 0 0 auto; }
-  #previewWrap {
-    position: relative; overflow: hidden; border-radius: var(--radius);
-    background: #000; border: 2px solid var(--line);
-    width: 100%; height: 34dvh;   /* replaced with exact px sizes once the camera reports its shape */
-    transition: border-color .25s;
-  }
-  #previewWrap.flash { border-color: var(--accent); }
-  #video { width: 100%; height: 100%; object-fit: contain; transform-origin: center; display: block; }
-  #zoomRow {
-    width: 100%; display: flex; align-items: center; gap: 10px;
-    font-size: 14px; color: var(--muted); padding: 0 4px;
-  }
-  #zoomRow input { flex: 1; min-width: 0; accent-color: var(--accent); }
-  #zoomVal { min-width: 3.2em; text-align: right; font-variant-numeric: tabular-nums; }
-  body.no-preview #previewBox { display: none; }
+    input[type="password"], select {
+      width: 100%;
+      padding: 13px;
+      border-radius: 10px;
+      border: 1px solid #333;
+      background: #141414;
+      color: #fff;
+      font-size: 1rem;
+    }
+    button.primary {
+      width: 100%;
+      padding: 15px;
+      border-radius: 12px;
+      background: #d97757;
+      color: #000000;
+      font-weight: 700;
+      font-size: 1.05rem;
+      border: none;
+      margin-top: 6px;
+      cursor: pointer;
+    }
+    .tips-box {
+      background: #111111;
+      border: 1px solid #222222;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-top: 6px;
+    }
+    .tips-box h3 { font-size: 0.9rem; color: #e5e5e5; margin-bottom: 8px; }
+    .tips-box ul { padding-left: 18px; color: #999999; font-size: 0.85rem; line-height: 1.5; }
 
-  #wordArea {
-    flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center;
-    border-radius: var(--radius); background: var(--panel); border: 1px solid var(--line);
-    padding: 8px 12px; overflow: hidden;
-  }
-  #word {
-    width: 100%; text-align: center; font-weight: 800; line-height: 1.05;
-    letter-spacing: -0.01em; overflow-wrap: normal; word-break: normal;
-    transition: opacity .2s;
-  }
-  #word.placeholder { font-weight: 500; color: var(--muted); }
-  #word.stale { opacity: .3; }
+    /* Watcher Screen */
+    #watcher-screen {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+    }
 
-  #statusBar { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); min-height: 22px; }
-  #dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); flex: 0 0 auto; }
-  #dot.watching { background: var(--ok); }
-  #dot.reading { background: var(--accent); animation: pulse .8s infinite alternate; }
-  #dot.error { background: var(--bad); }
-  @keyframes pulse { from { opacity: 1; } to { opacity: .35; } }
-  #statusText { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  #stats { flex: 0 0 auto; font-variant-numeric: tabular-nums; }
+    /* Camera Preview Area */
+    #cam-section {
+      background: #0d0d0d;
+      border-bottom: 1px solid #222222;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    #cam-wrapper {
+      position: relative;
+      width: 100%;
+      height: 145px;
+      background: #000;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #333;
+    }
+    #cam-wrapper.hidden { display: none; }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform-origin: center center;
+    }
+    #zoom-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.82rem;
+      color: #aaaaaa;
+    }
+    #zoom-row.hidden { display: none; }
+    input[type="range"] {
+      flex: 1;
+      accent-color: #d97757;
+    }
 
-  #history { display: flex; gap: 6px; overflow-x: auto; margin: 0; padding: 0; list-style: none; min-height: 30px; scrollbar-width: none; }
-  #history li { flex: 0 0 auto; padding: 4px 10px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+    /* Status & Controls Bar */
+    #controls-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: #141414;
+      border-bottom: 1px solid #222222;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    #status-pill {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #4ade80;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ctrl-btn {
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1px solid #333333;
+      background: #222222;
+      color: #e5e5e5;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .ctrl-btn.danger { color: #f87171; border-color: #451a1a; }
 
-  #toolbar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  #toolbar button { padding: 0 6px; font-size: 15px; }
-  #stopBtn { color: var(--bad); }
+    /* Giant Answer Display */
+    #answer-area {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #answer-text {
+      font-size: clamp(2rem, 7.5vw, 3.8rem);
+      font-weight: 700;
+      line-height: 1.25;
+      color: #ffffff;
+      width: 100%;
+      word-break: break-word;
+    }
+    #answer-text.placeholder {
+      color: #444444;
+      font-weight: 500;
+      text-align: center;
+    }
 
-  /* ---------- Settings sheet ---------- */
-  #sheet {
-    position: fixed; inset: 0; background: rgba(0,0,0,.6);
-    display: flex; align-items: flex-end; justify-content: center; z-index: 10;
-  }
-  #sheetPanel {
-    width: 100%; max-width: 520px; background: var(--panel); border: 1px solid var(--line);
-    border-radius: 18px 18px 0 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
-  }
-  #sheetPanel h2 { margin: 0 0 14px; font-size: 20px; }
-  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
-  .row label { font-weight: 600; }
-  .row small { display: block; font-weight: 400; color: var(--muted); }
-  .row input[type=range] { width: 46%; accent-color: var(--accent); }
-  .row input[type=checkbox] { width: 24px; height: 24px; accent-color: var(--accent); }
-  #sheetClose { width: 100%; }
-
-  #bootError { max-width: 480px; margin: 40px auto; padding: 0 16px; color: var(--bad); }
-</style>
+    /* Settings Modal */
+    #settings-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 50;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #settings-card {
+      background: #161616;
+      border: 1px solid #333;
+      border-radius: 16px;
+      padding: 20px;
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    #settings-card h2 { font-size: 1.2rem; }
+    .setting-item { display: flex; flex-direction: column; gap: 6px; }
+    .setting-row { display: flex; justify-content: space-between; align-items: center; }
+    .setting-desc { font-size: 0.78rem; color: #888; }
+    input[type="checkbox"] { width: 20px; height: 20px; accent-color: #d97757; }
+  </style>
 </head>
 <body>
 
-<!-- Shown if the app script cannot load (offline, CDN blocked). -->
-<div id="bootError" hidden>
-  Couldn't load the app. Check that the phone is online, then reload the page.
-</div>
+  <!-- Setup View -->
+  <div id="setup-screen">
+    <h1>Screen Question Answerer</h1>
+    <p class="sub">Prop this phone so its back camera sees your computer screen. When a new question appears and settles, the answer shows up here in large text.</p>
 
-<section id="setup">
-  <h1>Card Reader</h1>
-  <p class="lead">Prop this phone so its back camera sees the screen showing the Heads Up card. When the card changes, the word shows up here in big text.</p>
-
-  <label class="field">
-    <span>Anthropic API key</span>
-    <input id="keyInput" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk-ant-…">
-    <small>Saved only in this phone's browser. Get one at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>. <button type="button" id="forgetKey" class="linkish" hidden>Forget saved key</button></small>
-  </label>
-
-  <label class="field">
-    <span>Model</span>
-    <select id="modelSel"></select>
-    <small id="modelNote"></small>
-  </label>
-
-  <button id="startBtn" class="primary" type="button">Start camera</button>
-  <p id="setupMsg" class="msg" role="alert"></p>
-
-  <div class="tips">
-    <b>For the best reads</b>
-    <ul>
-      <li>Keep the phone still: lean it on something. It only reads once the picture settles.</li>
-      <li>Fill the preview with the card using the zoom slider.</li>
-      <li>Angle the phone a little to dodge glare. Keep it on a charger for long games.</li>
-    </ul>
-  </div>
-</section>
-
-<section id="run" hidden>
-  <div id="previewBox">
-    <div id="previewWrap">
-      <video id="video" playsinline muted autoplay></video>
+    <div class="row-between">
+      <label for="api-key">Anthropic API key</label>
+      <button type="button" class="link-btn" id="forget-key-btn">Forget saved key</button>
     </div>
-    <div id="zoomRow">
-      <span>Zoom</span>
-      <input id="zoom" type="range" min="1" max="4" step="0.1" value="1" aria-label="Zoom">
-      <span id="zoomVal">1.0×</span>
+    <input type="password" id="api-key" placeholder="sk-ant-..." autocomplete="off" />
+    <p class="hint">Saved only in this phone's browser. Get one at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>.</p>
+
+    <label for="model-select">Model</label>
+    <select id="model-select">
+      <option value="claude-sonnet-4-6">Claude Sonnet 4.6 (Best accuracy)</option>
+      <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (Fastest & lowest cost)</option>
+    </select>
+
+    <button type="button" class="primary" id="start-btn">Start camera</button>
+
+    <div class="tips-box">
+      <h3>For the best reads</h3>
+      <ul>
+        <li>Keep the phone still: lean it on something. It only reads once the picture settles.</li>
+        <li>Frame the question area using the zoom slider.</li>
+        <li>Angle the phone a little to dodge glare. Keep it on a charger for long sessions.</li>
+      </ul>
     </div>
   </div>
 
-  <div id="wordArea"><div id="word" class="placeholder">Waiting for a card…</div></div>
+  <!-- Active Watcher View -->
+  <div id="watcher-screen">
+    <div id="cam-section">
+      <div id="cam-wrapper">
+        <video id="video" autoplay playsinline muted></video>
+      </div>
+      <div id="zoom-row">
+        <span>Zoom</span>
+        <input type="range" id="zoom-slider" min="1" max="3" step="0.1" value="1" />
+        <span id="zoom-label">1.0&times;</span>
+      </div>
+    </div>
 
-  <div id="statusBar">
-    <span id="dot"></span>
-    <span id="statusText">Starting…</span>
-    <span id="stats"></span>
+    <div id="controls-bar">
+      <div id="status-pill">Starting&hellip;</div>
+      <button type="button" class="ctrl-btn" id="read-now-btn">Read now</button>
+      <button type="button" class="ctrl-btn" id="toggle-cam-btn">Hide cam</button>
+      <button type="button" class="ctrl-btn" id="settings-btn">Settings</button>
+      <button type="button" class="ctrl-btn danger" id="stop-btn">Stop</button>
+    </div>
+
+    <div id="answer-area">
+      <div id="answer-text" class="placeholder">Waiting for a question&hellip;</div>
+    </div>
   </div>
 
-  <ol id="history" aria-label="Recent cards"></ol>
+  <!-- Settings Modal -->
+  <div id="settings-modal">
+    <div id="settings-card">
+      <h2>Settings</h2>
 
-  <div id="toolbar">
-    <button id="readNow" type="button">Read now</button>
-    <button id="togglePreview" type="button">Hide cam</button>
-    <button id="openSettings" type="button">Settings</button>
-    <button id="stopBtn" type="button">Stop</button>
+      <div class="setting-item">
+        <div class="row-between">
+          <label for="sensitivity-slider">Sensitivity</label>
+          <span id="sensitivity-val" style="font-size:0.85rem;color:#ccc;">Medium</span>
+        </div>
+        <p class="setting-desc">Higher reacts to smaller screen changes</p>
+        <input type="range" id="sensitivity-slider" min="1" max="10" step="1" value="5" />
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div style="font-size:0.9rem;font-weight:600;">Vibrate on new answer</div>
+          <div class="setting-desc">Android only; iPhones ignore it</div>
+        </div>
+        <input type="checkbox" id="vibrate-toggle" />
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div style="font-size:0.9rem;font-weight:600;">Beep on new answer</div>
+          <div class="setting-desc">Subtle tone when answer updates</div>
+        </div>
+        <input type="checkbox" id="beep-toggle" />
+      </div>
+
+      <button type="button" class="primary" id="done-settings-btn">Done</button>
+    </div>
   </div>
-</section>
 
-<div id="sheet" hidden>
-  <div id="sheetPanel" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
-    <h2 id="sheetTitle">Settings</h2>
-    <div class="row">
-      <label for="sens">Sensitivity<small>Higher reacts to smaller changes</small></label>
-      <input id="sens" type="range" min="1" max="10" step="1">
-    </div>
-    <div class="row">
-      <label for="vib">Vibrate on new card<small>Android only; iPhones ignore it</small></label>
-      <input id="vib" type="checkbox">
-    </div>
-    <div class="row">
-      <label for="snd">Beep on new card</label>
-      <input id="snd" type="checkbox">
-    </div>
-    <button id="sheetClose" type="button" class="primary">Done</button>
-  </div>
-</div>
+  <canvas id="capture-canvas" style="display:none;"></canvas>
+  <canvas id="diff-canvas" width="64" height="36" style="display:none;"></canvas>
 
-<script>
-  // If the module below never finishes loading, say so instead of showing a dead page.
-  setTimeout(function () {
-    if (!window.__cardReaderReady) {
-      document.getElementById('bootError').hidden = false;
-      document.getElementById('setup').hidden = true;
+  <script>
+    const setupScreen = document.getElementById('setup-screen');
+    const watcherScreen = document.getElementById('watcher-screen');
+    const apiKeyInput = document.getElementById('api-key');
+    const forgetKeyBtn = document.getElementById('forget-key-btn');
+    const modelSelect = document.getElementById('model-select');
+    const startBtn = document.getElementById('start-btn');
+
+    const camSection = document.getElementById('cam-section');
+    const camWrapper = document.getElementById('cam-wrapper');
+    const zoomRow = document.getElementById('zoom-row');
+    const video = document.getElementById('video');
+    const zoomSlider = document.getElementById('zoom-slider');
+    const zoomLabel = document.getElementById('zoom-label');
+
+    const statusPill = document.getElementById('status-pill');
+    const readNowBtn = document.getElementById('read-now-btn');
+    const toggleCamBtn = document.getElementById('toggle-cam-btn');
+    const settingsBtn = document.getElementById('settings-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const answerText = document.getElementById('answer-text');
+
+    const settingsModal = document.getElementById('settings-modal');
+    const sensitivitySlider = document.getElementById('sensitivity-slider');
+    const sensitivityVal = document.getElementById('sensitivity-val');
+    const vibrateToggle = document.getElementById('vibrate-toggle');
+    const beepToggle = document.getElementById('beep-toggle');
+    const doneSettingsBtn = document.getElementById('done-settings-btn');
+
+    const captureCanvas = document.getElementById('capture-canvas');
+    const diffCanvas = document.getElementById('diff-canvas');
+
+    let stream = null;
+    let pollTimer = null;
+    let wakeLock = null;
+    let isProcessing = false;
+    let camHidden = false;
+    let zoomFactor = 1.0;
+
+    // Motion & settle state
+    let prevFrame = null;
+    let settledFrame = null;
+    let hasPendingChange = false;
+    let stableCount = 0;
+    let lastAnswer = '';
+
+    // Load saved preferences
+    apiKeyInput.value = localStorage.getItem('sqa_api_key') || '';
+    if (localStorage.getItem('sqa_model')) modelSelect.value = localStorage.getItem('sqa_model');
+    if (localStorage.getItem('sqa_zoom')) {
+      zoomFactor = parseFloat(localStorage.getItem('sqa_zoom')) || 1.0;
+      zoomSlider.value = zoomFactor;
+      zoomLabel.textContent = zoomFactor.toFixed(1) + '×';
     }
-  }, 10000);
-</script>
+    if (localStorage.getItem('sqa_sens')) sensitivitySlider.value = localStorage.getItem('sqa_sens');
+    vibrateToggle.checked = localStorage.getItem('sqa_vibrate') === 'true';
+    beepToggle.checked = localStorage.getItem('sqa_beep') === 'true';
+    updateSensitivityLabel();
 
-<script type="module">
-import Anthropic from "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@1.1.0/+esm";
-
-// ---------------------------------------------------------------------------
-// Config
-// ---------------------------------------------------------------------------
-const MODELS = {
-  "claude-opus-5-5":  { label: "Claude Opus 5.5 (most accurate)",     inPerM: 4.00, outPerM: 20.00, fallbacks: true,
-                        note: "Best at messy camera shots. Under a cent per read." },
-  "claude-haiku-5-5": { label: "Claude Haiku 5.5 (faster, cheaper)",  inPerM: 0.10, outPerM: 0.50,  fallbacks: false,
-                        note: "Quicker answers for a tiny fraction of the cost; may misread hard-to-see cards." },
-};
-
-const SYSTEM_PROMPT = [
-  "You read the card in a photo from a Heads Up-style party game.",
-  "The photo is taken by a phone camera pointed at a TV, monitor, or another phone, so expect glare, moire, blur, and an angled view.",
-  "Reply with only the word or phrase printed on the current card, exactly as written. No quotes, no explanation.",
-  "Ignore the category name, timer, score, buttons, and logos.",
-  "If no card word is showing (countdown, a Correct or Pass screen, a menu, results), or the card is unreadable, reply with exactly: NONE",
-].join(" ");
-
-const TICK_MS = 350;            // how often the camera frame is checked for changes
-const STABLE_TICKS = 2;         // frame must hold still this many ticks before a read
-const MIN_GAP_MS = 900;         // minimum time between automatic reads
-const MAX_CONCURRENT = 2;       // reads in flight at once (newest result wins)
-const MAX_READS_PER_MIN = 30;   // safety cap against runaway cost
-const SIG_W = 96, SIG_H = 54;   // size of the change-detection thumbnail
-const PIXEL_DELTA = 28;         // per-pixel channel change that counts as "changed"
-const SEND_LONG_EDGE = 1024;    // longest side of the image sent to Claude
-// Fraction of thumbnail pixels that must change, indexed by sensitivity 1..10.
-const CHANGE_THRESHOLDS = [0.08, 0.06, 0.045, 0.035, 0.025, 0.018, 0.012, 0.008, 0.005, 0.003];
-
-// ---------------------------------------------------------------------------
-// Storage (wrapped: private browsing can make localStorage throw)
-// ---------------------------------------------------------------------------
-const store = {
-  get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
-  del(k)    { try { localStorage.removeItem(k); } catch {} },
-};
-const settings = Object.assign(
-  { model: "claude-opus-5-5", sensitivity: 5, vibrate: true, sound: false, zoom: 1 },
-  store.get("cardReader.settings", {})
-);
-if (!MODELS[settings.model]) settings.model = "claude-opus-5-5";
-const saveSettings = () => store.set("cardReader.settings", settings);
-
-// ---------------------------------------------------------------------------
-// Elements
-// ---------------------------------------------------------------------------
-const $ = (id) => document.getElementById(id);
-const el = {
-  setup: $("setup"), run: $("run"), keyInput: $("keyInput"), forgetKey: $("forgetKey"),
-  modelSel: $("modelSel"), modelNote: $("modelNote"), startBtn: $("startBtn"), setupMsg: $("setupMsg"),
-  video: $("video"), previewWrap: $("previewWrap"), zoom: $("zoom"), zoomVal: $("zoomVal"),
-  wordArea: $("wordArea"), word: $("word"), dot: $("dot"), statusText: $("statusText"), stats: $("stats"),
-  history: $("history"), readNow: $("readNow"), togglePreview: $("togglePreview"),
-  openSettings: $("openSettings"), stopBtn: $("stopBtn"),
-  sheet: $("sheet"), sens: $("sens"), vib: $("vib"), snd: $("snd"), sheetClose: $("sheetClose"),
-};
-
-// ---------------------------------------------------------------------------
-// Setup screen
-// ---------------------------------------------------------------------------
-for (const [id, m] of Object.entries(MODELS)) {
-  const opt = document.createElement("option");
-  opt.value = id; opt.textContent = m.label;
-  el.modelSel.append(opt);
-}
-el.modelSel.value = settings.model;
-const showModelNote = () => { el.modelNote.textContent = MODELS[el.modelSel.value].note; };
-showModelNote();
-el.modelSel.addEventListener("change", () => { settings.model = el.modelSel.value; saveSettings(); showModelNote(); });
-
-const savedKey = store.get("cardReader.key", "");
-if (savedKey) { el.keyInput.value = savedKey; el.forgetKey.hidden = false; }
-el.forgetKey.addEventListener("click", () => {
-  store.del("cardReader.key"); el.keyInput.value = ""; el.forgetKey.hidden = true; el.keyInput.focus();
-});
-
-el.startBtn.addEventListener("click", start);
-
-// ---------------------------------------------------------------------------
-// State
-// ---------------------------------------------------------------------------
-let client = null;
-let stream = null, track = null;
-let hwZoom = null;          // {min,max} when the camera supports optical/hardware zoom
-let digitalZoom = 1;
-let loopTimer = null;
-let running = false;
-let wakeLock = null;
-let audioCtx = null;
-
-let prevSig = null, lastReadSig = null, stableTicks = 0;
-let lastReadAt = 0, pausedUntil = 0;
-let seq = 0, appliedSeq = 0, inFlight = 0;
-let readTimes = [];
-let currentWord = "";
-const stats = { reads: 0, cost: 0 };
-
-const sigCanvas = document.createElement("canvas");
-sigCanvas.width = SIG_W; sigCanvas.height = SIG_H;
-const sigCtx = sigCanvas.getContext("2d", { willReadFrequently: true });
-const sendCanvas = document.createElement("canvas");
-const sendCtx = sendCanvas.getContext("2d");
-
-// ---------------------------------------------------------------------------
-// Start / stop
-// ---------------------------------------------------------------------------
-async function start() {
-  el.setupMsg.textContent = "";
-  const key = el.keyInput.value.trim();
-  if (!key) { el.setupMsg.textContent = "Paste your Anthropic API key first."; el.keyInput.focus(); return; }
-  if (!window.isSecureContext) { el.setupMsg.textContent = "The camera needs an https:// page. Open this from your GitHub Pages link."; return; }
-  if (!navigator.mediaDevices?.getUserMedia) { el.setupMsg.textContent = "This browser can't use the camera. Try Safari (iPhone) or Chrome (Android)."; return; }
-
-  store.set("cardReader.key", key);
-  el.forgetKey.hidden = false;
-  client = new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true, maxRetries: 1, timeout: 30_000 });
-
-  // Unlock audio during the tap so beeps work later (iOS requires a gesture).
-  try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume(); } catch {}
-
-  el.startBtn.disabled = true;
-  el.startBtn.textContent = "Opening camera…";
-  try {
-    await openCamera();
-  } catch (e) {
-    el.setupMsg.textContent = cameraErrorText(e);
-    el.startBtn.disabled = false; el.startBtn.textContent = "Start camera";
-    return;
-  }
-  el.startBtn.disabled = false; el.startBtn.textContent = "Start camera";
-
-  el.setup.hidden = true; el.run.hidden = false;
-  sizePreview();
-  running = true;
-  resetDetection();
-  await keepAwake();
-  fitWord();
-  setStatus("watching", "Watching for a card");
-  loopTimer = setInterval(tick, TICK_MS);
-}
-
-function stop(message) {
-  running = false;
-  clearInterval(loopTimer); loopTimer = null;
-  if (stream) stream.getTracks().forEach((t) => t.stop());
-  stream = null; track = null;
-  el.video.srcObject = null;
-  try { wakeLock?.release(); } catch {}
-  wakeLock = null;
-  el.run.hidden = true; el.setup.hidden = false;
-  el.setupMsg.textContent = message || "";
-}
-
-async function openCamera() {
-  stream = await navigator.mediaDevices.getUserMedia({
-    audio: false,
-    video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } },
-  });
-  track = stream.getVideoTracks()[0];
-  track.addEventListener("ended", () => { if (running) setStatus("error", "Camera stopped. Tap Stop, then Start again."); });
-  el.video.srcObject = stream;
-  await el.video.play().catch(() => {});
-  await new Promise((r) => (el.video.videoWidth ? r() : el.video.addEventListener("loadedmetadata", r, { once: true })));
-  sizePreview();
-
-  const caps = typeof track.getCapabilities === "function" ? track.getCapabilities() : {};
-  hwZoom = caps && caps.zoom && caps.zoom.max > 1 ? { min: caps.zoom.min, max: caps.zoom.max } : null;
-  el.zoom.value = String(settings.zoom);
-  await applyZoom(settings.zoom);
-}
-
-function cameraErrorText(e) {
-  switch (e && e.name) {
-    case "NotAllowedError":
-      return "Camera permission was blocked. iPhone: tap aA in the address bar → Website Settings → Camera → Allow. Android: tap the lock icon → Permissions → Camera.";
-    case "NotFoundError":
-    case "OverconstrainedError":
-      return "No usable camera was found on this device.";
-    case "NotReadableError":
-      return "The camera is busy in another app. Close it and try again.";
-    default:
-      return "Couldn't open the camera: " + (e && e.message ? e.message : e);
-  }
-}
-
-// Size the preview box to the camera's exact shape so what you see is what gets read.
-function sizePreview() {
-  const vw = el.video.videoWidth, vh = el.video.videoHeight;
-  if (!vw || !vh) return;
-  const maxW = el.previewWrap.parentElement.clientWidth;
-  const maxH = window.innerHeight * 0.3;
-  const ratio = vw / vh;
-  let w = maxW, h = maxW / ratio;
-  if (h > maxH) { h = maxH; w = maxH * ratio; }
-  el.previewWrap.style.width = Math.round(w) + "px";
-  el.previewWrap.style.height = Math.round(h) + "px";
-}
-el.video.addEventListener("resize", sizePreview);
-window.addEventListener("resize", sizePreview);
-
-// ---------------------------------------------------------------------------
-// Zoom: hardware zoom when the camera supports it (many Android phones),
-// otherwise a digital crop of the centre of the frame.
-// ---------------------------------------------------------------------------
-async function applyZoom(z) {
-  settings.zoom = z; saveSettings();
-  el.zoomVal.textContent = z.toFixed(1) + "×";
-  if (hwZoom) {
-    const target = Math.min(Math.max(z, hwZoom.min), hwZoom.max);
-    try { await track.applyConstraints({ advanced: [{ zoom: target }] }); digitalZoom = z / target; }
-    catch { digitalZoom = z; }
-  } else {
-    digitalZoom = z;
-  }
-  el.video.style.transform = digitalZoom > 1.001 ? `scale(${digitalZoom})` : "";
-  resetDetection();
-}
-el.zoom.addEventListener("input", () => applyZoom(parseFloat(el.zoom.value)));
-
-function cropRect() {
-  const vw = el.video.videoWidth, vh = el.video.videoHeight;
-  const cw = vw / digitalZoom, ch = vh / digitalZoom;
-  return { sx: (vw - cw) / 2, sy: (vh - ch) / 2, sw: cw, sh: ch };
-}
-
-// ---------------------------------------------------------------------------
-// Change detection
-// ---------------------------------------------------------------------------
-function signature() {
-  const { sx, sy, sw, sh } = cropRect();
-  if (!sw || !sh) return null;
-  sigCtx.drawImage(el.video, sx, sy, sw, sh, 0, 0, SIG_W, SIG_H);
-  return sigCtx.getImageData(0, 0, SIG_W, SIG_H).data;
-}
-
-// Fraction of pixels where any colour channel moved by more than PIXEL_DELTA.
-function changedFraction(a, b) {
-  if (!a || !b) return 1;
-  let changed = 0;
-  for (let i = 0; i < a.length; i += 4) {
-    if (Math.abs(a[i] - b[i]) > PIXEL_DELTA ||
-        Math.abs(a[i + 1] - b[i + 1]) > PIXEL_DELTA ||
-        Math.abs(a[i + 2] - b[i + 2]) > PIXEL_DELTA) changed++;
-  }
-  return changed / (a.length / 4);
-}
-
-function resetDetection() { prevSig = null; lastReadSig = null; stableTicks = 0; }
-
-function tick() {
-  if (!running || document.visibilityState !== "visible") return;
-  if (!el.video.videoWidth) return;
-  const sig = signature();
-  if (!sig) return;
-
-  const threshold = CHANGE_THRESHOLDS[settings.sensitivity - 1] ?? 0.025;
-  const motion = changedFraction(sig, prevSig);
-  prevSig = sig;
-  stableTicks = motion < Math.max(threshold * 0.5, 0.002) ? stableTicks + 1 : 0;
-
-  const change = changedFraction(sig, lastReadSig);
-  if (change > threshold && currentWord && !el.word.classList.contains("stale")) {
-    el.word.classList.add("stale");   // the card on screen moved on; dim the old word
-  }
-
-  const now = Date.now();
-  if (now < pausedUntil) return;
-  if (stableTicks >= STABLE_TICKS && change > threshold && now - lastReadAt >= MIN_GAP_MS && inFlight < MAX_CONCURRENT) {
-    readTimes = readTimes.filter((t) => now - t < 60_000);
-    if (readTimes.length >= MAX_READS_PER_MIN) {
-      pausedUntil = now + 15_000;
-      setStatus("error", "Picture keeps changing. Is the phone steady? Pausing 15s.");
-      return;
+    function updateSensitivityLabel() {
+      const v = parseInt(sensitivitySlider.value, 10);
+      if (v <= 3) sensitivityVal.textContent = 'Low (' + v + ')';
+      else if (v <= 7) sensitivityVal.textContent = 'Medium (' + v + ')';
+      else sensitivityVal.textContent = 'High (' + v + ')';
     }
-    lastReadSig = sig;
-    read();
-  }
-}
 
-// ---------------------------------------------------------------------------
-// Reading a card with Claude
-// ---------------------------------------------------------------------------
-function captureJpeg() {
-  const { sx, sy, sw, sh } = cropRect();
-  const scale = Math.min(1, SEND_LONG_EDGE / Math.max(sw, sh));
-  sendCanvas.width = Math.round(sw * scale);
-  sendCanvas.height = Math.round(sh * scale);
-  sendCtx.drawImage(el.video, sx, sy, sw, sh, 0, 0, sendCanvas.width, sendCanvas.height);
-  return sendCanvas.toDataURL("image/jpeg", 0.82).split(",")[1];
-}
+    sensitivitySlider.addEventListener('input', () => {
+      updateSensitivityLabel();
+      localStorage.setItem('sqa_sens', sensitivitySlider.value);
+    });
+    vibrateToggle.addEventListener('change', () => localStorage.setItem('sqa_vibrate', vibrateToggle.checked));
+    beepToggle.addEventListener('change', () => localStorage.setItem('sqa_beep', beepToggle.checked));
 
-async function read() {
-  if (!client || !el.video.videoWidth) return;
-  const mySeq = ++seq;
-  const now = Date.now();
-  lastReadAt = now;
-  readTimes.push(now);
-  inFlight++;
-  flashPreview();
-  setStatus("reading", "Reading card…");
+    forgetKeyBtn.addEventListener('click', () => {
+      localStorage.removeItem('sqa_api_key');
+      apiKeyInput.value = '';
+      alert('Saved API key removed from this browser.');
+    });
 
-  const modelId = settings.model;
-  const model = MODELS[modelId];
-  const params = {
-    model: modelId,
-    max_tokens: 2000,
-    output_config: { effort: "low" },
-    system: SYSTEM_PROMPT,
-    messages: [{
-      role: "user",
-      content: [
-        { type: "image", source: { type: "base64", media_type: "image/jpeg", data: captureJpeg() } },
-        { type: "text", text: "What word or phrase is on the card?" },
-      ],
-    }],
-  };
+    zoomSlider.addEventListener('input', () => {
+      zoomFactor = parseFloat(zoomSlider.value);
+      zoomLabel.textContent = zoomFactor.toFixed(1) + '×';
+      video.style.transform = 'scale(' + zoomFactor + ')';
+      localStorage.setItem('sqa_zoom', zoomFactor);
+    });
 
-  try {
-    const res = model.fallbacks
-      ? await client.beta.messages.create({ ...params, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" })
-      : await client.messages.create(params);
+    toggleCamBtn.addEventListener('click', () => {
+      camHidden = !camHidden;
+      camWrapper.classList.toggle('hidden', camHidden);
+      zoomRow.classList.toggle('hidden', camHidden);
+      camSection.style.display = camHidden ? 'none' : 'flex';
+      toggleCamBtn.textContent = camHidden ? 'Show cam' : 'Hide cam';
+    });
 
-    stats.reads++;
-    const u = res.usage || {};
-    stats.cost += ((u.input_tokens || 0) * model.inPerM + (u.output_tokens || 0) * model.outPerM) / 1e6;
-    showStats();
+    settingsBtn.addEventListener('click', () => {
+      settingsModal.style.display = 'flex';
+    });
+    doneSettingsBtn.addEventListener('click', () => {
+      settingsModal.style.display = 'none';
+    });
 
-    if (mySeq < appliedSeq) return;   // a newer read already landed
-    appliedSeq = mySeq;
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+        }
+      } catch (e) {}
+    }
 
-    if (res.stop_reason === "refusal") { setStatus("watching", "Couldn't read that one"); return; }
-    const text = cleanAnswer(res.content.filter((b) => b.type === "text").map((b) => b.text).join(" "));
-    if (!text) { setStatus("watching", "No card showing"); return; }
-    showWord(text);
-    setStatus("watching", "Watching for the next card");
-  } catch (e) {
-    handleApiError(e);
-  } finally {
-    inFlight--;
-    if (inFlight === 0 && running && el.dot.classList.contains("reading")) setStatus("watching", "Watching for a card");
-  }
-}
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && watcherScreen.style.display === 'flex') {
+        requestWakeLock();
+      }
+    });
 
-function cleanAnswer(raw) {
-  let t = (raw || "").trim().split("\n")[0].trim();
-  t = t.replace(/^["'“”‘’]+|["'“”‘’]+$/g, "").replace(/[.]+$/, "").trim();
-  if (!t || /^none$/i.test(t)) return "";
-  return t;
-}
+    function playBeep() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.18);
+      } catch (e) {}
+    }
 
-function handleApiError(e) {
-  if (e instanceof Anthropic.AuthenticationError) {
-    stop("Anthropic rejected that API key. Check it and try again.");
-  } else if (e instanceof Anthropic.PermissionDeniedError) {
-    stop("This API key isn't allowed to use that model. Try the other model or a different key.");
-  } else if (e instanceof Anthropic.RateLimitError) {
-    pausedUntil = Date.now() + 10_000;
-    setStatus("error", "Rate limited by Anthropic. Waiting 10s.");
-  } else if (e instanceof Anthropic.BadRequestError) {
-    pausedUntil = Date.now() + 5_000;
-    setStatus("error", "Request rejected: " + e.message);   // e.g. "credit balance is too low"
-  } else if (e instanceof Anthropic.APIConnectionError) {
-    pausedUntil = Date.now() + 3_000;
-    setStatus("error", "Network problem. Retrying shortly.");
-  } else if (e instanceof Anthropic.APIError) {
-    pausedUntil = Date.now() + 3_000;
-    setStatus("error", `Anthropic error ${e.status ?? ""}: ${e.message}`);
-  } else {
-    pausedUntil = Date.now() + 3_000;
-    setStatus("error", "Something went wrong: " + (e && e.message ? e.message : e));
-  }
-}
+    startBtn.addEventListener('click', async () => {
+      const key = apiKeyInput.value.trim();
+      if (!key) {
+        alert('Please enter your Anthropic API key first.');
+        return;
+      }
+      localStorage.setItem('sqa_api_key', key);
+      localStorage.setItem('sqa_model', modelSelect.value);
 
-// ---------------------------------------------------------------------------
-// Display
-// ---------------------------------------------------------------------------
-function showWord(text) {
-  const isNew = text.toLowerCase() !== currentWord.toLowerCase();
-  currentWord = text;
-  el.word.textContent = text;
-  el.word.classList.remove("placeholder", "stale");
-  fitWord();
-  if (!isNew) return;
+      setupScreen.style.display = 'none';
+      watcherScreen.style.display = 'flex';
+      video.style.transform = 'scale(' + zoomFactor + ')';
 
-  const li = document.createElement("li");
-  li.textContent = text;
-  el.history.prepend(li);
-  while (el.history.children.length > 12) el.history.lastChild.remove();
+      await requestWakeLock();
+      await startCamera();
+    });
 
-  if (settings.vibrate && navigator.vibrate) { try { navigator.vibrate(60); } catch {} }
-  if (settings.sound) beep();
-}
+    stopBtn.addEventListener('click', () => {
+      clearInterval(pollTimer);
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+        stream = null;
+      }
+      watcherScreen.style.display = 'none';
+      setupScreen.style.display = 'flex';
+    });
 
-// Largest font size that keeps the word inside the box without breaking words.
-function fitWord() {
-  const box = el.wordArea, w = el.word;
-  const maxH = box.clientHeight - 16;
-  let lo = 14, hi = 260;
-  while (lo < hi) {
-    const mid = (lo + hi + 1) >> 1;
-    w.style.fontSize = mid + "px";
-    if (w.scrollWidth <= w.clientWidth && w.scrollHeight <= maxH) lo = mid; else hi = mid - 1;
-  }
-  w.style.fontSize = lo + "px";
-}
-window.addEventListener("resize", () => { if (running) fitWord(); });
+    readNowBtn.addEventListener('click', () => {
+      analyzeScreen();
+    });
 
-function setStatus(kind, text) {
-  el.dot.className = kind;
-  el.statusText.textContent = text;
-}
+    async function startCamera() {
+      try {
+        statusPill.textContent = 'Starting camera...';
+        statusPill.style.color = '#facc15';
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          },
+          audio: false
+        });
+        video.srcObject = stream;
+        await video.play();
 
-function showStats() {
-  el.stats.textContent = `${stats.reads} read${stats.reads === 1 ? "" : "s"} · ~$${stats.cost.toFixed(stats.cost < 1 ? 3 : 2)}`;
-}
+        prevFrame = null;
+        settledFrame = null;
+        hasPendingChange = true;
+        stableCount = 0;
 
-function flashPreview() {
-  el.previewWrap.classList.add("flash");
-  setTimeout(() => el.previewWrap.classList.remove("flash"), 300);
-}
+        statusPill.textContent = 'Watching screen...';
+        statusPill.style.color = '#4ade80';
 
-function beep() {
-  if (!audioCtx) return;
-  try {
-    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-    o.frequency.value = 880; g.gain.value = 0.08;
-    o.connect(g).connect(audioCtx.destination);
-    o.start(); o.stop(audioCtx.currentTime + 0.08);
-  } catch {}
-}
+        // Check motion every 800ms so we detect changes and wait until picture settles
+        pollTimer = setInterval(checkMotionAndSettle, 800);
+      } catch (err) {
+        statusPill.textContent = 'Camera error: ' + err.message;
+        statusPill.style.color = '#f87171';
+      }
+    }
 
-// ---------------------------------------------------------------------------
-// Keep the screen on
-// ---------------------------------------------------------------------------
-async function keepAwake() {
-  if (!("wakeLock" in navigator)) {
-    setStatus("watching", "Tip: set Auto-Lock to Never so the screen stays on");
-    return;
-  }
-  try { wakeLock = await navigator.wakeLock.request("screen"); } catch {}
-}
+    function getSmallFrameData() {
+      const ctx = diffCanvas.getContext('2d', { willReadFrequently: true });
+      const vw = video.videoWidth || 1280;
+      const vh = video.videoHeight || 720;
+      const cropW = vw / zoomFactor;
+      const cropH = vh / zoomFactor;
+      const sx = (vw - cropW) / 2;
+      const sy = (vh - cropH) / 2;
+      ctx.drawImage(video, sx, sy, cropW, cropH, 0, 0, diffCanvas.width, diffCanvas.height);
+      return ctx.getImageData(0, 0, diffCanvas.width, diffCanvas.height).data;
+    }
 
-document.addEventListener("visibilitychange", async () => {
-  if (!running || document.visibilityState !== "visible") return;
-  await keepAwake();
-  if (el.video.paused) el.video.play().catch(() => {});
-  resetDetection();
-});
+    function frameDiffRatio(dataA, dataB) {
+      if (!dataA || !dataB) return 1;
+      let changed = 0;
+      const total = diffCanvas.width * diffCanvas.height;
+      for (let i = 0; i < dataA.length; i += 4) {
+        const d = Math.abs(dataA[i] - dataB[i]) +
+                  Math.abs(dataA[i + 1] - dataB[i + 1]) +
+                  Math.abs(dataA[i + 2] - dataB[i + 2]);
+        if (d > 60) changed++;
+      }
+      return changed / total;
+    }
 
-// ---------------------------------------------------------------------------
-// Toolbar + settings sheet
-// ---------------------------------------------------------------------------
-el.readNow.addEventListener("click", () => {
-  if (inFlight >= MAX_CONCURRENT) return;
-  lastReadSig = signature();
-  read();
-});
-el.togglePreview.addEventListener("click", () => {
-  const hidden = document.body.classList.toggle("no-preview");
-  el.togglePreview.textContent = hidden ? "Show cam" : "Hide cam";
-  fitWord();
-});
-el.stopBtn.addEventListener("click", () => stop());
+    function checkMotionAndSettle() {
+      if (isProcessing || video.readyState < 2) return;
 
-el.sens.value = String(settings.sensitivity);
-el.vib.checked = settings.vibrate;
-el.snd.checked = settings.sound;
-el.openSettings.addEventListener("click", () => { el.sheet.hidden = false; });
-el.sheetClose.addEventListener("click", () => { el.sheet.hidden = true; });
-el.sheet.addEventListener("click", (e) => { if (e.target === el.sheet) el.sheet.hidden = true; });
-el.sens.addEventListener("input", () => { settings.sensitivity = parseInt(el.sens.value, 10); saveSettings(); });
-el.vib.addEventListener("change", () => { settings.vibrate = el.vib.checked; saveSettings(); });
-el.snd.addEventListener("change", () => { settings.sound = el.snd.checked; saveSettings(); if (el.snd.checked) beep(); });
+      const current = getSmallFrameData();
+      // Sensitivity 1..10 maps to change threshold 0.08 down to 0.012
+      const sens = parseInt(sensitivitySlider.value, 10) || 5;
+      const changeThreshold = 0.088 - (sens * 0.0075);
+      const settleThreshold = 0.015;
 
-window.__cardReaderReady = true;
-</script>
+      if (!prevFrame) {
+        prevFrame = current;
+        return;
+      }
+
+      const deltaFromLastTick = frameDiffRatio(current, prevFrame);
+      prevFrame = current;
+
+      // Did the image move significantly right now?
+      if (deltaFromLastTick > settleThreshold) {
+        hasPendingChange = true;
+        stableCount = 0;
+        statusPill.textContent = 'Motion detected, settling...';
+        statusPill.style.color = '#facc15';
+        return;
+      }
+
+      // Picture is steady right now
+      if (hasPendingChange) {
+        stableCount++;
+        // Wait 2 steady ticks (~1.6s) after motion stops so autofocus & screen settle
+        if (stableCount >= 2) {
+          const deltaFromSettled = frameDiffRatio(current, settledFrame);
+          if (!settledFrame || deltaFromSettled > changeThreshold) {
+            settledFrame = current;
+            hasPendingChange = false;
+            stableCount = 0;
+            analyzeScreen();
+          } else {
+            hasPendingChange = false;
+            stableCount = 0;
+            statusPill.textContent = 'Watching (unchanged)';
+            statusPill.style.color = '#a3a3a3';
+          }
+        }
+      }
+    }
+
+    function captureCroppedBase64() {
+      const vw = video.videoWidth || 1280;
+      const vh = video.videoHeight || 720;
+      const cropW = vw / zoomFactor;
+      const cropH = vh / zoomFactor;
+      const sx = (vw - cropW) / 2;
+      const sy = (vh - cropH) / 2;
+
+      const maxOutW = 1280;
+      const scale = Math.min(1, maxOutW / cropW);
+      captureCanvas.width = Math.round(cropW * scale);
+      captureCanvas.height = Math.round(cropH * scale);
+
+      const ctx = captureCanvas.getContext('2d');
+      ctx.drawImage(video, sx, sy, cropW, cropH, 0, 0, captureCanvas.width, captureCanvas.height);
+      const dataUrl = captureCanvas.toDataURL('image/jpeg', 0.85);
+      return dataUrl.split(',').pop();
+    }
+
+    async function analyzeScreen() {
+      if (isProcessing || video.readyState < 2) return;
+      isProcessing = true;
+      statusPill.textContent = 'Reading & answering...';
+      statusPill.style.color = '#38bdf8';
+
+      try {
+        const base64Image = captureCroppedBase64();
+        const apiKey = localStorage.getItem('sqa_api_key');
+        const model = localStorage.getItem('sqa_model') || 'claude-sonnet-4-6';
+
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: JSON.stringify({
+            model: model,
+            max_tokens: 350,
+            system: 'You are viewing a camera photo of a computer monitor. Read the question, prompt, or problem shown on the screen and provide ONLY the direct, accurate answer. If it is multiple choice, state the correct option letter and answer text clearly. Do not repeat the question and do not add conversational filler. If there is no question or problem visible on the screen, reply with the exact word NONE.',
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'image',
+                    source: {
+                      type: 'base64',
+                      media_type: 'image/jpeg',
+                      data: base64Image
+                    }
+                  },
+                  {
+                    type: 'text',
+                    text: 'Answer the question shown on this screen, or reply NONE if no question is visible.'
+                  }
+                ]
+              }
+            ]
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error?.message || 'API error ' + response.status);
+        }
+
+        const textBlock = Array.isArray(data.content) ? data.content.find(b => b.type === 'text') : null;
+        const reply = (textBlock?.text || '').trim();
+
+        if (reply && reply.toUpperCase() !== 'NONE') {
+          answerText.classList.remove('placeholder');
+          answerText.textContent = reply;
+          statusPill.textContent = 'Answered • Watching...';
+          statusPill.style.color = '#4ade80';
+
+          if (reply !== lastAnswer) {
+            lastAnswer = reply;
+            if (vibrateToggle.checked && navigator.vibrate) navigator.vibrate(150);
+            if (beepToggle.checked) playBeep();
+          }
+        } else {
+          statusPill.textContent = 'No question • Watching...';
+          statusPill.style.color = '#a3a3a3';
+        }
+      } catch (err) {
+        statusPill.textContent = 'Error: ' + err.message;
+        statusPill.style.color = '#f87171';
+      } finally {
+        isProcessing = false;
+      }
+    }
+  </script>
 </body>
 </html>
