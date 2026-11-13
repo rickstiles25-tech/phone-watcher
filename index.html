@@ -72,20 +72,40 @@
       padding: 18px 18px;
       overflow-y: auto;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
       background: #050505;
       border-bottom: 1px solid #222;
     }
-    #answer-text {
+    /* margin:auto centers the answer when it fits. Unlike align-items:center, it lets a
+       too-tall answer start at the top (scrollable) instead of pushing its start out of view. */
+    #answer-box {
+      margin: auto;
+      width: 100%;
+      text-align: center;
+      transition: opacity 0.2s;
+    }
+    #answer-box.stale { opacity: 0.28; }
+    #answer-main {
       font-size: clamp(2.4rem, 9vw, 4.5rem);
       font-weight: 800;
       line-height: 1.2;
       color: #ffffff;
       word-break: break-word;
-      width: 100%;
     }
+    /* Answer text under the letter: smaller, and never more than 2 lines */
+    #answer-detail {
+      margin-top: 6px;
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.25;
+      color: #d4d4d4;
+      word-break: break-word;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      overflow: hidden;
+    }
+    #answer-detail:empty { display: none; }
     .placeholder {
       font-size: clamp(1.3rem, 4.5vw, 2rem) !important;
       color: #444444 !important;
@@ -120,6 +140,7 @@
       padding: 3px 8px;
       border-radius: 6px;
       border: 1px solid #2e2e2e;
+      flex-shrink: 0;
     }
     #button-row {
       display: grid;
@@ -261,8 +282,8 @@
 
     <label for="model-select">Claude Model</label>
     <select id="model-select">
-      <option value="claude-sonnet-4-6">Claude Sonnet 4.6 (Balanced &amp; Accurate)</option>
-      <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (Fastest &amp; Lowest Cost)</option>
+      <option value="claude-haiku-5-5">Claude Haiku 5.5 (Fastest &amp; Lowest Cost)</option>
+      <option value="claude-sonnet-5-5">Claude Sonnet 5.5 (More Accurate, Slower)</option>
     </select>
 
     <button type="button" class="primary" id="start-btn" onclick="handleStartClick()">Start Watching</button>
@@ -273,7 +294,10 @@
   <div id="watcher-screen">
     <!-- Top: Direct Answer -->
     <div id="answer-container">
-      <div id="answer-text" class="placeholder">Waiting for question...</div>
+      <div id="answer-box">
+        <div id="answer-main" class="placeholder">Waiting for question...</div>
+        <div id="answer-detail"></div>
+      </div>
     </div>
 
     <!-- Middle: Status, Controls, Error Banner -->
@@ -303,6 +327,14 @@
         <span>Auto-Crop Margin: <strong id="margin-val">12%</strong></span>
         <input type="range" id="margin-slider" min="5" max="25" step="1" value="12" oninput="updateMarginLabel()" />
       </div>
+      <div class="setting-line">
+        <span>Reads per question: <strong id="reads-val">1</strong></span>
+        <input type="range" id="reads-slider" min="1" max="3" step="1" value="1" oninput="updateReadsLabel()" />
+      </div>
+      <div class="setting-line">
+        <span>Answer text size: <strong id="textsize-val">22px</strong></span>
+        <input type="range" id="textsize-slider" min="14" max="48" step="1" value="22" oninput="updateTextSize()" />
+      </div>
       <div class="drawer-actions">
         <button type="button" class="ctrl-btn" onclick="rescanRearLenses()">Re-Scan Rear Lenses</button>
         <button type="button" class="ctrl-btn stop" onclick="forgetApiKey()">Forget Saved Key</button>
@@ -329,9 +361,7 @@
   <script>
     var currentStream = null;
     var watchInterval = null;
-    var settleTimeout = null;
     var isBusy = false;
-    var lastFrameLuma = null;
     var wakeLockObj = null;
     var rearCameras = [];
     var activeRearIdx = 0;
@@ -339,6 +369,43 @@
     var hwZoomMin = 1.0;
     var hwZoomMax = 1.0;
     var hwZoomSupported = false;
+    var cssScale = 1.0;          // zoom applied with CSS when the camera has no hardware zoom
+    var pipelineRunId = 0;       // bumped by Stop so in-flight work knows to quit
+
+    // Change detection state. Frames are small 160x120 brightness maps ("luma").
+    var baselineLuma = null;     // the screen as it looked when the last answer was read
+    var prevLuma = null;         // the previous poll's frame, used to tell when the screen has settled
+    var settling = false;
+    var stableSince = 0;
+
+    // Saved screen location
+    var cropBox = null;          // [x1,y1,x2,y2] of the text on the monitor, 0..1 within the camera view
+    var boxRefLuma = null;       // frame from when cropBox was last confirmed, for the camera-moved check
+
+    // Tuning
+    var POLL_MS = 250;
+    var SETTLE_MS = 1000;             // screen must hold still this long before anything is sent
+    var PIXEL_DELTA = 22;             // brightness change that counts a pixel as changed
+    var CAMERA_MOVE_PCT = 10;         // % of pixels outside the crop that must change to count as a bump
+    var MIN_OUTSIDE_FRACTION = 0.08;  // need this much of the view outside the crop to run the bump check
+    var MAX_TEXT_CHANGE = 0.20;       // with 2 or 3 reads: over 20% word difference starts the count over
+    var MAX_VERIFY_RESTARTS = 3;      // give up after this many restarts
+    var MAX_API_RETRIES = 2;          // retries for rate-limit, overload and network errors
+    var DEFAULT_MODEL = "claude-haiku-5-5";
+
+    var LOCATE_SYS = "You locate the entire block of readable text content on a computer monitor photo. Return ONLY four comma-separated normalized coordinates x1,y1,x2,y2 between 0.0 and 1.0 enclosing ALL readable text and answer choices from top-left to bottom-right. Example: 0.05,0.10,0.95,0.90. If no readable text exists, return 0,0,1,1.";
+    var LOCATE_USER = "Return x1,y1,x2,y2 for all readable content on this monitor.";
+
+    var SOLVE_SYS = [
+      "You read a photo of a computer monitor showing a quiz question and give the answer.",
+      "1. Find the one question that is completely visible together with all of its answer choices. Ignore any question cut off at the top or bottom edge.",
+      "2. In <question></question>, transcribe that question and its answer choices exactly as shown. If no complete question is visible, write NONE there.",
+      "3. In <work></work>, reason briefly to find the correct answer. Keep it short.",
+      "4. In <letter></letter>, put only the capital letter of the correct choice if the choices are labeled with letters (A, B, C, D... or a, b, c, d...). Leave it empty if the choices have no letter labels.",
+      "5. In <answer></answer>, put the correct answer as a short label of 5 words or fewer, for example: Jupiter. Do not repeat the letter there. If no complete question is visible, write NONE.",
+      "Output only these four tagged sections, in this order."
+    ].join("\n");
+    var SOLVE_USER = "Answer the complete question on this monitor.";
 
     function safeGetStorage(key) {
       try {
@@ -360,13 +427,34 @@
       } catch (e) {}
     }
 
+    function isKnownModel(m) {
+      if (!m) return false;
+      var opts = document.getElementById("model-select").options;
+      for (var i = 0; i < opts.length; i++) {
+        if (opts[i].value === m) return true;
+      }
+      return false;
+    }
+
+    function getModel() {
+      var m = safeGetStorage("csw_model");
+      return isKnownModel(m) ? m : DEFAULT_MODEL;
+    }
+
     (function initSavedValues() {
       var k = safeGetStorage("csw_api_key");
       var m = safeGetStorage("csw_model");
       var s = safeGetStorage("csw_sens");
       var mg = safeGetStorage("csw_margin");
+      var rd = safeGetStorage("csw_reads");
+      var ts = safeGetStorage("csw_textsize");
       if (k) document.getElementById("api-key").value = k;
-      if (m) document.getElementById("model-select").value = m;
+      // Older versions saved model names that no longer exist; drop those
+      if (m && isKnownModel(m)) {
+        document.getElementById("model-select").value = m;
+      } else if (m) {
+        safeRemoveStorage("csw_model");
+      }
       if (s) {
         document.getElementById("sens-slider").value = s;
         document.getElementById("sens-val").textContent = parseFloat(s).toFixed(1) + "%";
@@ -375,6 +463,12 @@
         document.getElementById("margin-slider").value = mg;
         document.getElementById("margin-val").textContent = mg + "%";
       }
+      if (rd) {
+        document.getElementById("reads-slider").value = rd;
+        document.getElementById("reads-val").textContent = String(getReadsPerQuestion());
+      }
+      if (ts) document.getElementById("textsize-slider").value = ts;
+      applyTextSize();
     })();
 
     function showSetupError(msg) {
@@ -400,6 +494,27 @@
       var st = document.getElementById("status-text");
       st.textContent = text;
       st.style.color = color || "#4ade80";
+    }
+
+    function setAnswerStale(isStale) {
+      var box = document.getElementById("answer-box");
+      if (isStale) box.classList.add("stale");
+      else box.classList.remove("stale");
+    }
+
+    function showAnswer(res) {
+      var main = document.getElementById("answer-main");
+      var detail = document.getElementById("answer-detail");
+      main.classList.remove("placeholder");
+      if (res.letter) {
+        main.textContent = res.letter;
+        detail.textContent = res.answer || "";
+      } else {
+        main.textContent = res.answer;
+        detail.textContent = "";
+      }
+      setAnswerStale(false);
+      document.getElementById("answer-container").scrollTop = 0;
     }
 
     function requestScreenWakeLock() {
@@ -442,10 +557,10 @@
 
     function stopWatching() {
       if (watchInterval) clearInterval(watchInterval);
-      if (settleTimeout) clearTimeout(settleTimeout);
       watchInterval = null;
-      settleTimeout = null;
+      pipelineRunId++; // cancels any read still in flight
       isBusy = false;
+      forgetScreenLocation();
       stopCurrentStream();
       document.getElementById("watcher-screen").style.display = "none";
       document.getElementById("setup-screen").style.display = "flex";
@@ -459,6 +574,17 @@
         }
         currentStream = null;
       }
+    }
+
+    // Throw away the saved crop box and reference frames. Used whenever the view changes
+    // (new lens, zoom change, restart) so nothing compares against a stale picture.
+    function forgetScreenLocation() {
+      cropBox = null;
+      boxRefLuma = null;
+      baselineLuma = null;
+      prevLuma = null;
+      settling = false;
+      stableSince = 0;
     }
 
     function toggleCameraView() {
@@ -479,6 +605,10 @@
       drawer.style.display = (drawer.style.display === "flex") ? "none" : "flex";
     }
 
+    function getThreshold() {
+      return parseFloat(document.getElementById("sens-slider").value) || 1.2;
+    }
+
     function updateSensLabel() {
       var v = document.getElementById("sens-slider").value;
       document.getElementById("sens-val").textContent = parseFloat(v).toFixed(1) + "%";
@@ -489,6 +619,28 @@
       var v = document.getElementById("margin-slider").value;
       document.getElementById("margin-val").textContent = v + "%";
       safeSetStorage("csw_margin", v);
+    }
+
+    function getReadsPerQuestion() {
+      var v = parseInt(document.getElementById("reads-slider").value, 10);
+      return (v >= 1 && v <= 3) ? v : 1;
+    }
+
+    function updateReadsLabel() {
+      var v = getReadsPerQuestion();
+      document.getElementById("reads-val").textContent = String(v);
+      safeSetStorage("csw_reads", String(v));
+    }
+
+    function applyTextSize() {
+      var v = parseInt(document.getElementById("textsize-slider").value, 10) || 22;
+      document.getElementById("answer-detail").style.fontSize = v + "px";
+      document.getElementById("textsize-val").textContent = v + "px";
+    }
+
+    function updateTextSize() {
+      applyTextSize();
+      safeSetStorage("csw_textsize", document.getElementById("textsize-slider").value);
     }
 
     function forgetApiKey() {
@@ -564,18 +716,43 @@
     function applyZoomValue(val) {
       document.getElementById("zoom-label").textContent = "Zoom: " + val.toFixed(2) + "x";
       var video = document.getElementById("video");
+      cssScale = val;
       if (hwZoomSupported && currentStream) {
         var tracks = currentStream.getVideoTracks();
         if (tracks && tracks.length > 0 && tracks[0].applyConstraints) {
           var clamped = Math.max(hwZoomMin, Math.min(hwZoomMax, val));
           tracks[0].applyConstraints({ advanced: [{ zoom: clamped }] }).catch(function() {});
-          if (val >= hwZoomMin) {
-            video.style.transform = "scale(1)";
-            return;
-          }
+          if (val >= hwZoomMin) cssScale = 1.0;
         }
       }
-      video.style.transform = "scale(" + val + ")";
+      video.style.transform = "scale(" + cssScale + ")";
+      // The view changed, so the saved screen location no longer applies
+      forgetScreenLocation();
+    }
+
+    // The part of the camera frame that the preview shows, in video pixels. When zoom is done
+    // with CSS, this is the center of the frame, so what gets sent matches what you see.
+    function getViewRect() {
+      var video = document.getElementById("video");
+      var vw = video.videoWidth || 1280;
+      var vh = video.videoHeight || 960;
+      var z = Math.max(1, cssScale);
+      var w = vw / z;
+      var h = vh / z;
+      return { x: (vw - w) / 2, y: (vh - h) / 2, w: w, h: h };
+    }
+
+    // Where that same view sits on screen inside the preview box, in CSS pixels
+    function getDisplayedViewRect() {
+      var wrap = document.getElementById("video-wrapper");
+      var video = document.getElementById("video");
+      var W = wrap.clientWidth || 1;
+      var H = wrap.clientHeight || 1;
+      var a = (video.videoWidth || 4) / (video.videoHeight || 3);
+      var cw, ch;
+      if (W / H > a) { ch = H; cw = H * a; } else { cw = W; ch = W / a; }
+      if (cssScale < 1) { cw *= cssScale; ch *= cssScale; }
+      return { left: (W - cw) / 2, top: (H - ch) / 2, width: cw, height: ch };
     }
 
     function scoreCurrentFrameSharpnessAndCoverage() {
@@ -727,7 +904,7 @@
       }
       setStatus("Switching rear lens...", "#facc15");
       switchToRearIndex(activeRearIdx + 1).then(function() {
-        lastFrameLuma = null;
+        forgetScreenLocation();
         setStatus("Watching screen...", "#4ade80");
       }).catch(function(err) {
         showBannerError("Lens switch error: " + (err && err.message ? err.message : String(err)));
@@ -748,97 +925,173 @@
 
     function startWatchLoop() {
       if (watchInterval) clearInterval(watchInterval);
-      lastFrameLuma = null;
+      baselineLuma = null;
+      prevLuma = null;
+      settling = false;
+      stableSince = 0;
       setStatus("Watching screen...", "#4ade80");
-      watchInterval = setInterval(pollScreenDiff, 450);
+      watchInterval = setInterval(pollScreen, POLL_MS);
     }
 
-    function computeNormalizedLumaFrame() {
+    // Small brightness map of the current camera view (what the preview shows)
+    function grabLumaFrame() {
       var video = document.getElementById("video");
       if (!video || video.readyState < 2) return null;
       var c = document.getElementById("diff-canvas");
       var w = c.width;
       var h = c.height;
       var ctx = c.getContext("2d", { willReadFrequently: true });
-      ctx.drawImage(video, 0, 0, w, h);
+      var v = getViewRect();
+      ctx.drawImage(video, v.x, v.y, v.w, v.h, 0, 0, w, h);
       var data = ctx.getImageData(0, 0, w, h).data;
-      var count = w * h;
-      var luma = new Float32Array(count);
-      var sum = 0;
-      for (var i = 0; i < count; i++) {
+      var luma = new Float32Array(w * h);
+      for (var i = 0; i < luma.length; i++) {
         var p = i * 4;
-        var y = 0.299 * data[p] + 0.587 * data[p + 1] + 0.114 * data[p + 2];
-        luma[i] = y;
-        sum += y;
-      }
-      var mean = sum / count;
-      if (mean < 1) mean = 1;
-      var scale = 128.0 / mean;
-      for (var j = 0; j < count; j++) {
-        luma[j] = luma[j] * scale;
+        luma[i] = 0.299 * data[p] + 0.587 * data[p + 1] + 0.114 * data[p + 2];
       }
       return luma;
     }
 
-    function pollScreenDiff() {
+    // Percent of pixels that changed between two frames, optionally only where mask is 1.
+    // Each frame is first scaled to the same average brightness over the compared pixels,
+    // so the camera's auto-exposure adjusting doesn't count as a change.
+    function diffPercent(a, b, mask) {
+      if (!a || !b || a.length !== b.length) return 100;
+      var sumA = 0, sumB = 0, n = 0, i;
+      for (i = 0; i < a.length; i++) {
+        if (mask && !mask[i]) continue;
+        sumA += a[i];
+        sumB += b[i];
+        n++;
+      }
+      if (n === 0) return 0;
+      var sa = 128 / Math.max(1, sumA / n);
+      var sb = 128 / Math.max(1, sumB / n);
+      var changed = 0;
+      for (i = 0; i < a.length; i++) {
+        if (mask && !mask[i]) continue;
+        if (Math.abs(a[i] * sa - b[i] * sb) > PIXEL_DELTA) changed++;
+      }
+      return (changed / n) * 100;
+    }
+
+    // Grow the located box by the margin setting, with the original safety rules.
+    // This is exactly the area that gets photographed and sent to Claude.
+    function expandBox(box) {
+      var margin = (parseFloat(document.getElementById("margin-slider").value) || 12) / 100.0;
+      var x1 = Math.max(0, box[0] - margin);
+      var y1 = Math.max(0, box[1] - margin);
+      var x2 = Math.min(1, box[2] + margin);
+      var y2 = Math.min(1, box[3] + margin);
+      // Protect left-aligned text from clipping
+      if (x1 < 0.22) x1 = 0;
+      if (x2 - x1 < 0.25) { x1 = 0; x2 = 1; }
+      if (y2 - y1 < 0.20) { y1 = 0; y2 = 1; }
+      return [x1, y1, x2, y2];
+    }
+
+    // Mask of the pixels outside the crop (the wall, desk and monitor edge around the text).
+    // Returns null when the crop covers nearly the whole view, since there is nothing to check.
+    function outsideMask(box) {
+      if (!box) return null;
+      var r = expandBox(box);
+      var c = document.getElementById("diff-canvas");
+      var w = c.width;
+      var h = c.height;
+      var mask = new Uint8Array(w * h);
+      var count = 0;
+      for (var y = 0; y < h; y++) {
+        for (var x = 0; x < w; x++) {
+          var nx = (x + 0.5) / w;
+          var ny = (y + 0.5) / h;
+          if (nx < r[0] || nx > r[2] || ny < r[1] || ny > r[3]) {
+            mask[y * w + x] = 1;
+            count++;
+          }
+        }
+      }
+      if (count < w * h * MIN_OUTSIDE_FRACTION) return null;
+      return mask;
+    }
+
+    // A new question only changes pixels inside the monitor. A bump shifts everything,
+    // including the area around it. If that outside area changed, assume the camera moved.
+    function cameraMoved(refLuma, nowLuma) {
+      var mask = outsideMask(cropBox);
+      if (!mask) return false; // crop is already nearly the whole view; self-repair covers this case
+      return diffPercent(nowLuma, refLuma, mask) > CAMERA_MOVE_PCT;
+    }
+
+    function setDiffBadge(pct) {
+      document.getElementById("diff-badge").textContent = "Diff: " + pct.toFixed(1) + "%";
+    }
+
+    // Runs every POLL_MS. Free, on-phone change detection:
+    // 1) compare to the last answered screen; if it changed, gray out the answer and start settling
+    // 2) while settling, compare each frame to the previous one; once it holds still for SETTLE_MS, read it
+    function pollScreen() {
       if (isBusy) return;
-      var curr = computeNormalizedLumaFrame();
+      var curr = grabLumaFrame();
       if (!curr) return;
 
-      if (!lastFrameLuma) {
-        lastFrameLuma = curr;
+      if (!baselineLuma) {
+        baselineLuma = curr;
+        prevLuma = curr;
         return;
       }
 
-      var changed = 0;
-      var total = curr.length;
-      for (var i = 0; i < total; i++) {
-        if (Math.abs(curr[i] - lastFrameLuma[i]) > 22) {
-          changed++;
-        }
-      }
-      var pct = (changed / total) * 100.0;
-      document.getElementById("diff-badge").textContent = "Diff: " + pct.toFixed(1) + "%";
+      var thr = getThreshold();
 
-      var threshold = parseFloat(document.getElementById("sens-slider").value) || 1.2;
-      if (pct >= threshold) {
-        lastFrameLuma = curr;
-        setStatus("Change detected, settling...", "#facc15");
-        if (settleTimeout) clearTimeout(settleTimeout);
-        settleTimeout = setTimeout(function() {
-          runFullReadPipeline();
-        }, 650);
+      if (!settling) {
+        var pct = diffPercent(curr, baselineLuma, null);
+        setDiffBadge(pct);
+        prevLuma = curr;
+        if (pct >= thr) {
+          settling = true;
+          stableSince = 0;
+          setAnswerStale(true);
+          setStatus("Change detected, settling...", "#facc15");
+        }
+        return;
+      }
+
+      var step = prevLuma ? diffPercent(curr, prevLuma, null) : 100;
+      setDiffBadge(step);
+      prevLuma = curr;
+      if (step >= thr) {
+        stableSince = 0;
+        return;
+      }
+      var now = Date.now();
+      if (!stableSince) {
+        stableSince = now;
+        return;
+      }
+      if (now - stableSince >= SETTLE_MS) {
+        settling = false;
+        stableSince = 0;
+        runFullReadPipeline(false);
       }
     }
 
     function forceReadNow() {
       if (isBusy) return;
-      if (settleTimeout) clearTimeout(settleTimeout);
-      runFullReadPipeline();
+      settling = false;
+      stableSince = 0;
+      runFullReadPipeline(true);
     }
 
-    function captureCropBase64(box) {
+    // Photograph the current view (cropped to box, if given) and grab its brightness map
+    // at the same moment, so later frames can be compared to exactly what was sent.
+    function captureShot(box) {
       var video = document.getElementById("video");
-      var vw = video.videoWidth || 1280;
-      var vh = video.videoHeight || 960;
+      var v = getViewRect();
+      var r = box ? expandBox(box) : [0, 0, 1, 1];
 
-      var x1 = 0, y1 = 0, x2 = 1, y2 = 1;
-      if (box && box.length === 4) {
-        var margin = (parseFloat(document.getElementById("margin-slider").value) || 12) / 100.0;
-        x1 = Math.max(0, box[0] - margin);
-        y1 = Math.max(0, box[1] - margin);
-        x2 = Math.min(1, box[2] + margin);
-        y2 = Math.min(1, box[3] + margin);
-        // Protect left-aligned text from clipping
-        if (x1 < 0.22) x1 = 0;
-        if (x2 - x1 < 0.25) { x1 = 0; x2 = 1; }
-        if (y2 - y1 < 0.20) { y1 = 0; y2 = 1; }
-      }
-
-      var sx = Math.round(x1 * vw);
-      var sy = Math.round(y1 * vh);
-      var sw = Math.max(64, Math.round((x2 - x1) * vw));
-      var sh = Math.max(64, Math.round((y2 - y1) * vh));
+      var sx = Math.round(v.x + r[0] * v.w);
+      var sy = Math.round(v.y + r[1] * v.h);
+      var sw = Math.max(64, Math.round((r[2] - r[0]) * v.w));
+      var sh = Math.max(64, Math.round((r[3] - r[1]) * v.h));
 
       var maxDim = 1400;
       var scale = Math.min(1, maxDim / Math.max(sw, sh));
@@ -850,79 +1103,150 @@
       canvas.height = ch;
       var ctx = canvas.getContext("2d");
       ctx.drawImage(video, sx, sy, sw, sh, 0, 0, cw, ch);
+      var luma = grabLumaFrame();
 
       var dataUrl = canvas.toDataURL("image/jpeg", 0.85);
       var parts = dataUrl.split(",");
-      return parts[parts.length - 1];
+      return { base64: parts[parts.length - 1], luma: luma };
     }
 
+    // Shows exactly the area being sent, positioned over the preview
     function showCropBoxOverlay(box) {
       var overlay = document.getElementById("crop-overlay");
       if (!box || box.length !== 4) {
         overlay.style.display = "none";
         return;
       }
-      overlay.style.left = (box[0] * 100).toFixed(1) + "%";
-      overlay.style.top = (box[1] * 100).toFixed(1) + "%";
-      overlay.style.width = ((box[2] - box[0]) * 100).toFixed(1) + "%";
-      overlay.style.height = ((box[3] - box[1]) * 100).toFixed(1) + "%";
+      var r = expandBox(box);
+      var d = getDisplayedViewRect();
+      overlay.style.left = (d.left + r[0] * d.width).toFixed(1) + "px";
+      overlay.style.top = (d.top + r[1] * d.height).toFixed(1) + "px";
+      overlay.style.width = ((r[2] - r[0]) * d.width).toFixed(1) + "px";
+      overlay.style.height = ((r[3] - r[1]) * d.height).toFixed(1) + "px";
       overlay.style.display = "block";
     }
 
-    function callClaudeVision(base64Img, systemPrompt, userPrompt, maxTokens) {
-      var apiKey = safeGetStorage("csw_api_key") || "";
-      var model = safeGetStorage("csw_model") || "claude-sonnet-4-6";
+    function parseBox(str) {
+      var cleaned = (str || "").replace(/[xy][12]\s*[=:]/gi, " ");
+      var nums = cleaned.match(/\d*\.?\d+/g);
+      if (!nums || nums.length < 4) return [0, 0, 1, 1];
+      var b = [];
+      for (var i = 0; i < 4; i++) {
+        b.push(Math.max(0, Math.min(1, parseFloat(nums[i]))));
+      }
+      if (!(b[2] > b[0] && b[3] > b[1])) return [0, 0, 1, 1];
+      return b;
+    }
 
-      return fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true"
-        },
-        body: JSON.stringify({
-          model: model,
-          max_tokens: maxTokens || 350,
-          system: systemPrompt,
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "image",
-                  source: {
-                    type: "base64",
-                    media_type: "image/jpeg",
-                    data: base64Img
-                  }
-                },
-                {
-                  type: "text",
-                  text: userPrompt
+    function callClaudeVision(base64Img, systemPrompt, userPrompt, maxTokens, bail) {
+      var apiKey = safeGetStorage("csw_api_key") || "";
+      var body = JSON.stringify({
+        model: getModel(),
+        max_tokens: maxTokens || 350,
+        system: systemPrompt,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: "image/jpeg",
+                  data: base64Img
                 }
-              ]
-            }
-          ]
-        })
-      }).then(function(resp) {
-        return resp.json().then(function(data) {
-          if (!resp.ok) {
-            var errMsg = (data && data.error && data.error.message) ? data.error.message : ("HTTP " + resp.status);
-            var errType = (data && data.error && data.error.type) ? (" [" + data.error.type + "]") : "";
-            throw new Error("API " + resp.status + errType + ": " + errMsg);
+              },
+              {
+                type: "text",
+                text: userPrompt
+              }
+            ]
           }
-          var textOut = "";
-          if (data && data.content && data.content.length > 0) {
-            for (var i = 0; i < data.content.length; i++) {
-              if (data.content[i].type === "text") {
-                textOut += data.content[i].text;
+        ]
+      });
+
+      function attempt(n) {
+        if (bail) bail();
+        return fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
+            "anthropic-dangerous-direct-browser-access": "true"
+          },
+          body: body
+        }).then(function(resp) {
+          return resp.json().catch(function() { return {}; }).then(function(data) {
+            return { resp: resp, data: data };
+          });
+        }, function(netErr) {
+          return { netErr: netErr };
+        }).then(function(r) {
+          var retryable = false;
+          var msg = "";
+          if (r.netErr) {
+            retryable = true;
+            msg = "Network error: " + (r.netErr && r.netErr.message ? r.netErr.message : String(r.netErr));
+          } else if (!r.resp.ok) {
+            var s = r.resp.status;
+            retryable = (s === 429 || s === 529 || s >= 500);
+            var d = r.data || {};
+            var errMsg = (d.error && d.error.message) ? d.error.message : ("HTTP " + s);
+            var errType = (d.error && d.error.type) ? (" [" + d.error.type + "]") : "";
+            msg = "API " + s + errType + ": " + errMsg;
+          } else {
+            var data = r.data;
+            var textOut = "";
+            if (data && data.content && data.content.length > 0) {
+              for (var i = 0; i < data.content.length; i++) {
+                if (data.content[i].type === "text") {
+                  textOut += data.content[i].text;
+                }
               }
             }
+            return textOut.trim();
           }
-          return textOut.trim();
+
+          if (retryable && n < MAX_API_RETRIES) {
+            if (bail) bail();
+            var delay = n === 0 ? 1000 : 2500;
+            var ra = (r.resp && r.resp.headers && r.resp.headers.get) ? parseFloat(r.resp.headers.get("retry-after")) : NaN;
+            if (!isNaN(ra) && ra > 0) delay = Math.min(ra * 1000, 8000);
+            setStatus("API busy, retrying (" + (n + 1) + "/" + MAX_API_RETRIES + ")...", "#facc15");
+            return waitMs(delay).then(function() { return attempt(n + 1); });
+          }
+          throw new Error(msg);
         });
-      });
+      }
+
+      return attempt(0);
+    }
+
+    function extractTag(text, tag) {
+      var m = (text || "").match(new RegExp("<" + tag + ">([\\s\\S]*?)</" + tag + ">", "i"));
+      return m ? m[1].trim() : null;
+    }
+
+    function parseSolveResponse(text) {
+      var question = extractTag(text, "question");
+      var letterRaw = extractTag(text, "letter");
+      var answer = extractTag(text, "answer");
+      if (answer === null) {
+        throw new Error("Could not read Claude's answer (the response was cut off or malformed).");
+      }
+      var none = !answer || answer.toUpperCase() === "NONE" || (question || "").toUpperCase() === "NONE";
+
+      var letter = "";
+      var lm = (letterRaw || "").match(/^\(?\s*([A-Za-z])\s*[\)\.\:]?$/);
+      if (lm) letter = lm[1].toUpperCase();
+
+      if (letter) {
+        // Drop a leading "B) " or "B. " if Claude repeated the letter in the answer text
+        answer = answer.replace(new RegExp("^\\(?" + letter + "[\\)\\.\\:]\\s*", "i"), "");
+        if (answer.toUpperCase() === letter) answer = "";
+      }
+      return { question: question || "", letter: letter, answer: answer, none: none };
     }
 
     function computeWordSimilarity(a, b) {
@@ -950,112 +1274,133 @@
       });
     }
 
-    function runFullReadPipeline() {
+    function runFullReadPipeline(force) {
       if (isBusy) return;
       isBusy = true;
+      var runToken = ++pipelineRunId;
+      function bailIfStopped() {
+        if (runToken !== pipelineRunId) throw new Error("CANCELLED");
+      }
       clearBannerError();
-      setStatus("Locating screen content...", "#facc15");
 
-      // Step 1: Wide overview to find full readable text bounding box
-      var wideImg = captureCropBase64(null);
-      var locateSys = "You locate the entire block of readable text content on a computer monitor photo. Return ONLY four comma-separated normalized coordinates x1,y1,x2,y2 between 0.0 and 1.0 enclosing ALL readable text and answer choices from top-left to bottom-right. Example: 0.05,0.10,0.95,0.90. If no readable text exists, return 0,0,1,1.";
+      var startLuma = grabLumaFrame();
 
-      callClaudeVision(wideImg, locateSys, "Return x1,y1,x2,y2 for all readable content on this monitor.", 40)
-        .then(function(coordStr) {
-          var box = [0, 0, 1, 1];
-          var parts = (coordStr || "").split(",");
-          if (parts.length === 4) {
-            var nums = [
-              parseFloat(parts[0]),
-              parseFloat(parts[1]),
-              parseFloat(parts[2]),
-              parseFloat(parts[3])
-            ];
-            if (!isNaN(nums[0]) && !isNaN(nums[1]) && !isNaN(nums[2]) && !isNaN(nums[3]) && nums[2] > nums[0] && nums[3] > nums[1]) {
-              box = nums;
+      // Free check: if the settled screen looks the same as when the last answer was read
+      // (glare, a hand passing by), send nothing and un-gray the current answer.
+      if (!force && startLuma && baselineLuma && diffPercent(startLuma, baselineLuma, null) < getThreshold()) {
+        setAnswerStale(false);
+        setStatus("Watching (no real change)", "#4ade80");
+        isBusy = false;
+        return;
+      }
+
+      var locatedThisRun = false;
+      var repairedThisRun = false;
+      var reads = [];
+      var restarts = 0;
+
+      function locateScreen() {
+        bailIfStopped();
+        setStatus("Locating screen...", "#facc15");
+        var shot = captureShot(null);
+        return callClaudeVision(shot.base64, LOCATE_SYS, LOCATE_USER, 40, bailIfStopped).then(function(coordStr) {
+          bailIfStopped();
+          cropBox = parseBox(coordStr);
+          boxRefLuma = shot.luma;
+          locatedThisRun = true;
+          showCropBoxOverlay(cropBox);
+        });
+      }
+
+      // Reuse the saved crop box unless there is none yet or the camera looks like it moved
+      function ensureScreenLocated(nowLuma) {
+        if (cropBox && boxRefLuma && nowLuma && !cameraMoved(boxRefLuma, nowLuma)) {
+          showCropBoxOverlay(cropBox);
+          return Promise.resolve();
+        }
+        return locateScreen();
+      }
+
+      // One call: read the question, reason briefly, return the letter and a short answer
+      function readOnce() {
+        bailIfStopped();
+        var total = getReadsPerQuestion();
+        var label = total > 1 ? "Reading (" + (reads.length + 1) + "/" + total + ")" : "Reading and solving";
+        if (restarts > 0) label += " [restart " + restarts + "/" + MAX_VERIFY_RESTARTS + "]";
+        setStatus(label + "...", "#38bdf8");
+        var shot = captureShot(cropBox);
+        return callClaudeVision(shot.base64, SOLVE_SYS, SOLVE_USER, 1200, bailIfStopped).then(function(text) {
+          bailIfStopped();
+          var res = parseSolveResponse(text);
+          res.shot = shot;
+          return res;
+        });
+      }
+
+      // With "Reads per question" at 2 or 3, every read must match all earlier reads within
+      // MAX_TEXT_CHANGE, or the count starts over (finding the screen again if the camera moved).
+      function readLoop() {
+        return readOnce().then(function(res) {
+          if (res.none) {
+            // Self-repair: a saved crop box can be stale after a bump the outside check missed
+            if (!locatedThisRun && !repairedThisRun) {
+              repairedThisRun = true;
+              reads = [];
+              return locateScreen().then(readLoop);
+            }
+            return res;
+          }
+
+          for (var i = 0; i < reads.length; i++) {
+            var change = 1 - computeWordSimilarity(reads[i].question, res.question);
+            if (change > MAX_TEXT_CHANGE) {
+              restarts++;
+              if (restarts > MAX_VERIFY_RESTARTS) throw new Error("UNSTABLE");
+              reads = [];
+              setStatus("Text changed " + Math.round(change * 100) + "%, starting over...", "#facc15");
+              return waitMs(650).then(function() {
+                return ensureScreenLocated(grabLumaFrame());
+              }).then(readLoop);
             }
           }
-          showCropBoxOverlay(box);
 
-          // Step 2: Consecutive double-read text stability check on zoomed content
-          var attempt = 0;
-          var maxAttempts = 5;
-          var prevTranscript = "";
-          var stableCropImg = null;
+          reads.push(res);
+          if (reads.length >= getReadsPerQuestion()) return res;
+          return waitMs(400).then(readLoop);
+        });
+      }
 
-          var transcribeSys = "Transcribe all visible text on this monitor crop accurately from top to bottom. Output ONLY the exact raw text visible, nothing else. If there is no text, reply EMPTY.";
-
-          function verifyNextRead() {
-            attempt++;
-            setStatus("Verifying text (" + attempt + "/" + maxAttempts + ")...", "#facc15");
-            var cropImg = captureCropBase64(box);
-
-            return callClaudeVision(cropImg, transcribeSys, "Transcribe all visible text.", 450)
-              .then(function(transcript) {
-                if (!transcript || transcript.toUpperCase() === "EMPTY") {
-                  throw new Error("NO_TEXT");
-                }
-                if (prevTranscript && computeWordSimilarity(prevTranscript, transcript) >= 0.92) {
-                  stableCropImg = cropImg;
-                  return transcript;
-                }
-                prevTranscript = transcript;
-                if (attempt >= maxAttempts) {
-                  stableCropImg = cropImg;
-                  return transcript;
-                }
-                return waitMs(450).then(verifyNextRead);
-              });
-          }
-
-          return verifyNextRead().then(function(verifiedText) {
-            // Step 3: Solve completely visible question; return ONLY the letter if multiple-choice has letters
-            setStatus("Solving question...", "#38bdf8");
-            var solveSys = [
-              "You are answering a question visible on a computer monitor.",
-              "1. Inspect the visible text from top to bottom to find where each question begins and ends.",
-              "2. Ignore any partial or cut-off question at the top or bottom edge of the screen. Focus ONLY on the question that is completely visible with all of its answer choices.",
-              "3. CRITICAL OUTPUT FORMAT:",
-              "   - If the answer choices are labeled with letters (such as A, B, C, D, E or a, b, c, d), output ONLY the single capital letter of the correct answer (for example: B). Do NOT include the answer text, punctuation, parentheses, or explanation.",
-              "   - Only if the question has NO lettered choices (for example, a fill-in-the-blank, numeric, or open-ended question), output ONLY the direct concise answer with zero explanation or summary of the question.",
-              "4. If there is no complete question visible on the screen, reply with the exact word NONE."
-            ].join("\n");
-
-            var solvePrompt = "Verified screen text:\n" + verifiedText + "\n\nOutput ONLY the single answer letter (if choices have letters) or the direct answer (if no letters), or NONE.";
-
-            return callClaudeVision(stableCropImg, solveSys, solvePrompt, 120);
-          });
-        })
-        .then(function(finalAnswer) {
+      ensureScreenLocated(startLuma)
+        .then(readLoop)
+        .then(function(res) {
+          bailIfStopped();
           showCropBoxOverlay(null);
-          lastFrameLuma = computeNormalizedLumaFrame();
-
-          var cleaned = (finalAnswer || "").trim();
-          // Strip trailing period/parenthesis if Claude returned "B." or "B)"
-          if (/^[A-Za-z][\)\.\:]$/.test(cleaned)) {
-            cleaned = cleaned.charAt(0).toUpperCase();
-          }
-
-          if (cleaned && cleaned.toUpperCase() !== "NONE") {
-            var ansEl = document.getElementById("answer-text");
-            ansEl.classList.remove("placeholder");
-            ansEl.textContent = cleaned;
-            setStatus("Answer updated", "#4ade80");
+          // Compare future frames to the moment this photo was taken, so a question that
+          // appears while Claude is answering still counts as a change and gets read.
+          baselineLuma = res.shot.luma;
+          boxRefLuma = res.shot.luma;
+          prevLuma = null;
+          if (res.none) {
+            setStatus("Watching (no complete question)", "#4ade80");
           } else {
-            setStatus("Watching (No complete question)", "#4ade80");
+            showAnswer(res);
+            setStatus("Answer updated", "#4ade80");
           }
         })
         .catch(function(err) {
+          if (err && err.message === "CANCELLED") return; // Stop was pressed; leave the UI alone
           showCropBoxOverlay(null);
-          lastFrameLuma = computeNormalizedLumaFrame();
-          if (err && err.message === "NO_TEXT") {
-            setStatus("Watching (No text found)", "#4ade80");
+          baselineLuma = grabLumaFrame();
+          prevLuma = null;
+          if (err && err.message === "UNSTABLE") {
+            setStatus("Screen kept changing. Tap Read now to retry.", "#facc15");
           } else {
             showBannerError(err && err.message ? err.message : String(err));
           }
         })
         .finally(function() {
-          isBusy = false;
+          // Only release the lock if this run is still the current one
+          if (runToken === pipelineRunId) isBusy = false;
         });
     }
   </script>
