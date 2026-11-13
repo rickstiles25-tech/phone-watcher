@@ -6,29 +6,29 @@
   <title>Claude Screen Watcher</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background-color: #050505;
+    html, body {
+      background-color: #000000;
       color: #ffffff;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       height: 100dvh;
-      display: flex;
-      flex-direction: column;
+      width: 100%;
       overflow: hidden;
     }
 
     /* Setup Screen */
     #setup-screen {
-      padding: 22px;
+      padding: 22px 20px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
       justify-content: center;
       height: 100%;
-      overflow-y: auto;
+      max-width: 520px;
+      margin: 0 auto;
     }
-    h1 { font-size: 1.45rem; color: #f5f5f5; }
+    h1 { font-size: 1.4rem; color: #f5f5f5; }
     p.sub { font-size: 0.9rem; color: #aaaaaa; line-height: 1.4; }
-    label { font-size: 0.82rem; color: #cccccc; margin-bottom: -8px; }
+    label { font-size: 0.82rem; color: #cccccc; margin-bottom: -6px; }
     input, select, button {
       width: 100%;
       padding: 13px;
@@ -36,7 +36,7 @@
       border: 1px solid #333;
       background: #141414;
       color: #fff;
-      font-size: 0.98rem;
+      font-size: 1rem;
     }
     button.primary {
       background: #d97757;
@@ -48,39 +48,40 @@
     }
     #setup-error {
       display: none;
-      background: #3f1111;
+      background: #3b0d0d;
       border: 1px solid #ef4444;
       color: #fecaca;
       padding: 10px 12px;
       border-radius: 8px;
       font-size: 0.85rem;
+      line-height: 1.35;
       word-break: break-word;
     }
 
-    /* Active Watcher Layout: Answer Top -> Controls Middle -> Camera Bottom */
+    /* Main Watcher Layout: Answer Top -> Controls/Error Middle -> Camera Bottom */
     #watcher-screen {
       display: none;
       flex-direction: column;
-      height: 100%;
+      height: 100dvh;
       width: 100%;
     }
 
-    /* Top Answer Box */
-    #answer-container {
-      flex: 1 1 44%;
-      min-height: 140px;
-      padding: 18px 18px 12px 18px;
+    /* TOP: Giant Answer Box */
+    #answer-panel {
+      flex: 1 1 48%;
+      min-height: 160px;
+      padding: 18px 18px 14px 18px;
       overflow-y: auto;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #080808;
-      border-bottom: 1px solid #1f1f1f;
+      background: #050505;
+      border-bottom: 1px solid #222;
     }
     #answer-text {
-      font-size: clamp(1.9rem, 6.8vw, 3.4rem);
-      font-weight: 700;
-      line-height: 1.24;
+      font-size: clamp(2rem, 7.2vw, 3.8rem);
+      font-weight: 800;
+      line-height: 1.22;
       color: #ffffff;
       word-break: break-word;
       width: 100%;
@@ -89,16 +90,16 @@
     .placeholder {
       color: #4b5563 !important;
       font-weight: 500 !important;
-      font-size: clamp(1.2rem, 4.5vw, 1.8rem) !important;
+      font-size: clamp(1.3rem, 4.5vw, 2rem) !important;
       text-align: center !important;
     }
 
-    /* Middle Control & Status Bar */
-    #middle-controls {
+    /* MIDDLE: Status, Controls, Full Error Banner */
+    #middle-bar {
       flex: 0 0 auto;
       background: #111111;
-      padding: 10px 12px;
       border-bottom: 1px solid #222;
+      padding: 8px 12px;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -108,9 +109,9 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
+      font-size: 0.8rem;
     }
     #status-text {
-      font-size: 0.86rem;
       font-weight: 700;
       color: #4ade80;
       white-space: nowrap;
@@ -118,14 +119,14 @@
       text-overflow: ellipsis;
     }
     #diff-badge {
-      font-size: 0.76rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.75rem;
       color: #a3a3a3;
       background: #1c1c1c;
-      border: 1px solid #2e2e2e;
-      padding: 3px 8px;
-      border-radius: 999px;
-      font-variant-numeric: tabular-nums;
-      flex-shrink: 0;
+      padding: 3px 7px;
+      border-radius: 6px;
+      border: 1px solid #2c2c2c;
+      white-space: nowrap;
     }
     #btn-row {
       display: grid;
@@ -136,9 +137,9 @@
       padding: 9px 6px;
       font-size: 0.8rem;
       font-weight: 600;
-      background: #1e1e1e;
-      border: 1px solid #333;
       border-radius: 8px;
+      border: 1px solid #333;
+      background: #1e1e1e;
       color: #e5e5e5;
       cursor: pointer;
       text-align: center;
@@ -146,15 +147,20 @@
     .ctrl-btn.accent {
       background: #d97757;
       color: #000;
-      border-color: #d97757;
+      border: none;
+    }
+    .ctrl-btn.danger {
+      background: #2a1212;
+      border-color: #5c1d1d;
+      color: #fca5a5;
     }
 
     /* Full Unwrapped Error Banner */
     #error-banner {
       display: none;
-      background: #450a0a;
+      background: #3f0d0d;
       border: 1px solid #ef4444;
-      color: #fecaca;
+      color: #fee2e2;
       padding: 9px 11px;
       border-radius: 8px;
       font-size: 0.82rem;
@@ -163,16 +169,16 @@
       white-space: pre-wrap;
     }
 
-    /* Collapsible Settings Drawer */
+    /* Settings Drawer */
     #settings-drawer {
       display: none;
       background: #161616;
-      border: 1px solid #2b2b2b;
+      border: 1px solid #2e2e2e;
       border-radius: 8px;
-      padding: 10px;
+      padding: 10px 12px;
       flex-direction: column;
       gap: 9px;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
     }
     .setting-line {
       display: flex;
@@ -185,882 +191,843 @@
       padding: 0;
     }
     .drawer-actions {
-      display: flex;
-      gap: 8px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
       margin-top: 2px;
     }
-    .drawer-actions button {
-      padding: 8px;
-      font-size: 0.78rem;
-    }
 
-    /* Bottom Camera Section */
-    #camera-section {
-      flex: 1 1 42%;
-      min-height: 150px;
+    /* BOTTOM: Camera Preview + Zoom Bar */
+    #camera-panel {
+      flex: 1 1 40%;
+      min-height: 140px;
+      background: #000;
       display: flex;
       flex-direction: column;
-      background: #000000;
-      padding: 8px 10px 10px 10px;
-      gap: 6px;
-    }
-    #video-wrapper {
       position: relative;
-      flex: 1;
-      width: 100%;
-      background: #000;
-      border: 1px solid #262626;
-      border-radius: 8px;
       overflow: hidden;
+    }
+    #video-wrap {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #000;
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
     }
     video {
       width: 100%;
       height: 100%;
       object-fit: contain;
       transform-origin: center center;
-      transition: transform 0.25s ease;
     }
-    #crop-overlay {
+    #crop-box {
       position: absolute;
       border: 2px solid #facc15;
-      background: rgba(250, 204, 21, 0.12);
+      background: rgba(250, 204, 21, 0.08);
       pointer-events: none;
       display: none;
-      border-radius: 4px;
     }
-    #lens-badge {
-      position: absolute;
-      top: 6px;
-      left: 6px;
-      background: rgba(0, 0, 0, 0.72);
-      color: #d4d4d4;
-      font-size: 0.7rem;
-      padding: 3px 7px;
-      border-radius: 5px;
-      border: 1px solid #333;
-      pointer-events: none;
-    }
-    #camera-toolbar {
+    #cam-controls {
+      flex: 0 0 auto;
       display: flex;
       align-items: center;
       gap: 8px;
-      flex-shrink: 0;
-    }
-    #zoom-label {
-      font-size: 0.76rem;
-      color: #a3a3a3;
-      min-width: 68px;
-      font-variant-numeric: tabular-nums;
+      padding: 7px 12px;
+      background: #0d0d0d;
+      border-top: 1px solid #1f1f1f;
+      font-size: 0.78rem;
+      color: #bbb;
     }
     #zoom-slider {
       flex: 1;
       padding: 0;
       height: 24px;
-      background: transparent;
-      border: none;
     }
-    #switch-lens-btn {
+    #lens-btn {
       width: auto;
       padding: 6px 10px;
       font-size: 0.75rem;
       background: #1f1f1f;
-      border: 1px solid #383838;
-      border-radius: 7px;
-      color: #e5e5e5;
+      border: 1px solid #333;
+      color: #ddd;
+      border-radius: 6px;
       white-space: nowrap;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-  <!-- Setup Screen -->
+  <!-- SETUP SCREEN -->
   <div id="setup-screen">
     <h1>Claude Screen Watcher</h1>
-    <p class="sub">Automatically picks the best rear camera lens to capture the full screen, verifies text stability across two consecutive reads, and displays only the direct answer.</p>
+    <p class="sub">Watches your computer monitor via rear camera and displays direct answers in large text. Your API key stays only in this phone's browser storage.</p>
 
     <label for="api-key">Anthropic API Key</label>
     <input type="password" id="api-key" placeholder="sk-ant-..." autocomplete="off" />
 
     <label for="model-select">Claude Model</label>
     <select id="model-select">
-      <option value="claude-sonnet-4-6" selected>Claude Sonnet 4.6 (Recommended)</option>
-      <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (Fastest & Lowest Cost)</option>
+      <option value="claude-sonnet-4-6" selected>Claude Sonnet 4.6 (Balanced &amp; Accurate)</option>
+      <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (Fastest &amp; Lowest Cost)</option>
     </select>
 
-    <button type="button" class="primary" id="start-btn" onclick="handleStartClick()">Start Watching</button>
+    <button type="button" class="primary" id="start-btn">Start Watching</button>
     <div id="setup-error"></div>
   </div>
 
-  <!-- Active Watcher Screen -->
+  <!-- ACTIVE WATCHER SCREEN -->
   <div id="watcher-screen">
-    <!-- Top: Direct Answer Only -->
-    <div id="answer-container">
+    <!-- TOP: ANSWER -->
+    <div id="answer-panel">
       <div id="answer-text" class="placeholder">Waiting for a complete question on screen...</div>
     </div>
 
-    <!-- Middle: Controls & Full Unwrapped Error Display -->
-    <div id="middle-controls">
+    <!-- MIDDLE: BUTTONS + FULL ERROR -->
+    <div id="middle-bar">
       <div id="status-row">
-        <div id="status-text">Initializing rear camera...</div>
-        <div id="diff-badge">Diff: 0.0%</div>
+        <span id="status-text">Starting rear camera...</span>
+        <span id="diff-badge">Diff: 0.0% | Lens: --</span>
       </div>
 
       <div id="btn-row">
-        <button type="button" class="ctrl-btn accent" id="read-now-btn" onclick="triggerManualRead()">Read now</button>
-        <button type="button" class="ctrl-btn" id="toggle-cam-btn" onclick="toggleCameraView()">Hide cam</button>
-        <button type="button" class="ctrl-btn" id="settings-btn" onclick="toggleSettings()">Settings</button>
-        <button type="button" class="ctrl-btn" id="stop-btn" onclick="stopWatcher()">Stop</button>
+        <button type="button" class="ctrl-btn accent" id="read-now-btn">Read now</button>
+        <button type="button" class="ctrl-btn" id="hide-cam-btn">Hide cam</button>
+        <button type="button" class="ctrl-btn" id="settings-btn">Settings</button>
+        <button type="button" class="ctrl-btn danger" id="stop-btn">Stop</button>
       </div>
 
       <div id="error-banner"></div>
 
       <div id="settings-drawer">
         <div class="setting-line">
-          <span>Change Threshold: <strong id="sens-val">1.2%</strong></span>
-          <input type="range" id="sens-slider" min="0.5" max="5.0" step="0.1" value="1.2" oninput="updateSensLabel()" />
+          <span>Change Threshold: <strong id="thresh-val">1.2%</strong></span>
+          <input type="range" id="thresh-slider" min="0.5" max="5.0" step="0.1" value="1.2" />
         </div>
         <div class="setting-line">
           <span>Auto-Crop Margin: <strong id="margin-val">12%</strong></span>
-          <input type="range" id="margin-slider" min="4" max="24" step="1" value="12" oninput="updateMarginLabel()" />
+          <input type="range" id="margin-slider" min="5" max="25" step="1" value="12" />
+        </div>
+        <div class="setting-line">
+          <span>Double-Read Delay: <strong id="verify-val">450ms</strong></span>
+          <input type="range" id="verify-slider" min="250" max="1000" step="50" value="450" />
         </div>
         <div class="drawer-actions">
-          <button type="button" class="ctrl-btn" onclick="autoSelectBestRearLens()">Re-Scan Rear Lenses</button>
-          <button type="button" class="ctrl-btn" onclick="forgetApiKey()">Forget saved key</button>
+          <button type="button" class="ctrl-btn" id="rescan-lens-btn">Re-Scan Rear Lenses</button>
+          <button type="button" class="ctrl-btn danger" id="forget-key-btn">Forget Saved Key</button>
         </div>
       </div>
     </div>
 
-    <!-- Bottom: Rear-Only Camera View -->
-    <div id="camera-section">
-      <div id="video-wrapper">
+    <!-- BOTTOM: CAMERA -->
+    <div id="camera-panel">
+      <div id="video-wrap">
         <video id="video" autoplay playsinline muted></video>
-        <div id="crop-overlay"></div>
-        <div id="lens-badge">Rear Camera</div>
+        <div id="crop-box"></div>
       </div>
-      <div id="camera-toolbar">
-        <span id="zoom-label">Zoom: 1.00x</span>
-        <input type="range" id="zoom-slider" min="0.25" max="2.50" step="0.05" value="1.00" oninput="onZoomSliderChange()" />
-        <button type="button" id="switch-lens-btn" onclick="cycleRearLens()">Rear Lens (1/1)</button>
+      <div id="cam-controls">
+        <span id="zoom-label">Zoom 1.00x</span>
+        <input type="range" id="zoom-slider" min="0.25" max="2.50" step="0.05" value="1.00" />
+        <button type="button" id="lens-btn">Rear Lens 1/1</button>
       </div>
     </div>
   </div>
 
-  <!-- Hidden Offscreen Canvases -->
+  <canvas id="full-canvas" style="display:none;"></canvas>
   <canvas id="diff-canvas" width="160" height="120" style="display:none;"></canvas>
-  <canvas id="capture-canvas" style="display:none;"></canvas>
 
   <script>
-    var stream = null;
-    var rearCameras = [];
-    var currentRearIndex = 0;
-    var isRunning = false;
-    var isBusy = false;
-    var pollTimer = null;
-    var settleTimer = null;
-    var prevGray = null;
-    var wakeLock = null;
-    var camHidden = false;
-    var baseZoom = 1.0;
-
-    function safeGet(k, fallback) {
-      try {
-        var v = localStorage.getItem(k);
-        return v !== null ? v : fallback;
-      } catch (e) {
-        return fallback;
-      }
-    }
-
-    function safeSet(k, v) {
-      try {
-        localStorage.setItem(k, v);
-      } catch (e) {}
-    }
-
-    function safeRemove(k) {
-      try {
-        localStorage.removeItem(k);
-      } catch (e) {}
-    }
-
-    window.addEventListener('DOMContentLoaded', function() {
-      var savedKey = safeGet('claude_watcher_key', '');
-      var savedModel = safeGet('claude_watcher_model', 'claude-sonnet-4-6');
-      var savedSens = safeGet('claude_watcher_sens', '1.2');
-      var savedMargin = safeGet('claude_watcher_margin', '12');
-
-      if (savedKey) document.getElementById('api-key').value = savedKey;
-      if (savedModel) document.getElementById('model-select').value = savedModel;
-      document.getElementById('sens-slider').value = savedSens;
-      document.getElementById('margin-slider').value = savedMargin;
-      updateSensLabel();
-      updateMarginLabel();
-    });
-
-    function showSetupError(msg) {
-      var el = document.getElementById('setup-error');
-      el.textContent = msg;
-      el.style.display = 'block';
-    }
-
-    function setStatus(text, color) {
-      var el = document.getElementById('status-text');
-      el.textContent = text;
-      el.style.color = color || '#4ade80';
-    }
-
-    function showError(msg) {
-      setStatus('Error', '#f87171');
-      var banner = document.getElementById('error-banner');
-      banner.textContent = msg;
-      banner.style.display = 'block';
-    }
-
-    function clearError() {
-      var banner = document.getElementById('error-banner');
-      banner.textContent = '';
-      banner.style.display = 'none';
-    }
-
-    function updateSensLabel() {
-      var v = parseFloat(document.getElementById('sens-slider').value).toFixed(1);
-      document.getElementById('sens-val').textContent = v + '%';
-      safeSet('claude_watcher_sens', v);
-    }
-
-    function updateMarginLabel() {
-      var v = document.getElementById('margin-slider').value;
-      document.getElementById('margin-val').textContent = v + '%';
-      safeSet('claude_watcher_margin', v);
-    }
-
-    function toggleSettings() {
-      var d = document.getElementById('settings-drawer');
-      d.style.display = (d.style.display === 'flex') ? 'none' : 'flex';
-    }
-
-    function toggleCameraView() {
-      camHidden = !camHidden;
-      var sec = document.getElementById('camera-section');
-      var btn = document.getElementById('toggle-cam-btn');
-      sec.style.display = camHidden ? 'none' : 'flex';
-      btn.textContent = camHidden ? 'Show cam' : 'Hide cam';
-    }
-
-    function forgetApiKey() {
-      safeRemove('claude_watcher_key');
-      document.getElementById('api-key').value = '';
-      stopWatcher();
-    }
-
-    async function requestWakeLock() {
-      try {
-        if ('wakeLock' in navigator) {
-          wakeLock = await navigator.wakeLock.request('screen');
-        }
-      } catch (e) {}
-    }
-
-    document.addEventListener('visibilitychange', function() {
-      if (document.visibilityState === 'visible' && isRunning) {
-        requestWakeLock();
-      }
-    });
-
-    async function handleStartClick() {
-      try {
-        var key = document.getElementById('api-key').value.trim();
-        if (!key) {
-          showSetupError('Please enter your Anthropic API key (starts with sk-ant-).');
-          return;
-        }
-        var model = document.getElementById('model-select').value;
-        safeSet('claude_watcher_key', key);
-        safeSet('claude_watcher_model', model);
-
-        document.getElementById('setup-error').style.display = 'none';
-        document.getElementById('setup-screen').style.display = 'none';
-        document.getElementById('watcher-screen').style.display = 'flex';
-
-        isRunning = true;
-        await requestWakeLock();
-        await initRearCamerasAndAutoPick();
-      } catch (err) {
-        document.getElementById('watcher-screen').style.display = 'none';
-        document.getElementById('setup-screen').style.display = 'flex';
-        showSetupError('Startup failed: ' + (err.message || String(err)));
-      }
-    }
-
-    function stopWatcher() {
-      isRunning = false;
-      isBusy = false;
-      clearInterval(pollTimer);
-      clearTimeout(settleTimer);
-      if (stream) {
-        stream.getTracks().forEach(function(t) { t.stop(); });
-        stream = null;
-      }
-      document.getElementById('watcher-screen').style.display = 'none';
-      document.getElementById('setup-screen').style.display = 'flex';
-    }
-
-    function isFrontFacingLabel(label) {
-      var l = (label || '').toLowerCase();
-      return l.indexOf('front') !== -1 ||
-             l.indexOf('user') !== -1 ||
-             l.indexOf('selfie') !== -1 ||
-             l.indexOf('facetime') !== -1 ||
-             l.indexOf('truedepth') !== -1;
-    }
-
-    function isRearLabel(label) {
-      var l = (label || '').toLowerCase();
-      return l.indexOf('back') !== -1 ||
-             l.indexOf('rear') !== -1 ||
-             l.indexOf('environment') !== -1;
-    }
-
-    function scoreRearLensPriority(label) {
-      var l = (label || '').toLowerCase();
-      if (l.indexOf('ultra') !== -1 || l.indexOf('0.5') !== -1 || l.indexOf('wide-angle') !== -1) return 100;
-      if (l.indexOf('wide') !== -1 || l.indexOf('main') !== -1 || l.indexOf('camera 0') !== -1 || l.indexOf('back camera') !== -1) return 80;
-      if (l.indexOf('dual') !== -1 || l.indexOf('triple') !== -1) return 70;
-      if (l.indexOf('tele') !== -1 || l.indexOf('2x') !== -1 || l.indexOf('3x') !== -1 || l.indexOf('5x') !== -1) return 20;
-      if (l.indexOf('macro') !== -1 || l.indexOf('depth') !== -1 || l.indexOf('lidar') !== -1 || l.indexOf('tof') !== -1) return 5;
-      return 50;
-    }
-
-    async function openStreamWithConstraints(videoConstraints) {
-      if (stream) {
-        stream.getTracks().forEach(function(t) { t.stop(); });
-        stream = null;
-      }
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: videoConstraints,
-        audio: false
-      });
-      var video = document.getElementById('video');
-      video.srcObject = stream;
-      await video.play();
-      return stream;
-    }
-
-    async function discoverRearCamerasOnly() {
-      // Initial environment-facing request unlocks device labels and strictly avoids front camera
-      await openStreamWithConstraints({
-        facingMode: { exact: 'environment' },
-        width: { ideal: 1920 },
-        height: { ideal: 1440 }
-      }).catch(function() {
-        return openStreamWithConstraints({
-          facingMode: { ideal: 'environment' },
-          width: { ideal: 1920 },
-          height: { ideal: 1440 }
-        });
-      });
-
-      var devices = await navigator.mediaDevices.enumerateDevices();
-      var videoInputs = devices.filter(function(d) { return d.kind === 'videoinput'; });
-
-      var filtered = [];
-      for (var i = 0; i < videoInputs.length; i++) {
-        var dev = videoInputs[i];
-        var lbl = dev.label || '';
-
-        // Exclude any front-facing camera by label
-        if (isFrontFacingLabel(lbl)) continue;
-
-        // Exclude obvious non-standard depth/macro sensors if multiple rear lenses exist
-        var low = lbl.toLowerCase();
-        if (low.indexOf('depth') !== -1 || low.indexOf('tof') !== -1 || low.indexOf('ir ') !== -1) continue;
-
-        // If labels exist, keep confirmed rear cameras or unlabeled secondary sensors,
-        // and verify facingMode via capabilities if supported
-        if (isRearLabel(lbl) || lbl === '') {
-          filtered.push(dev);
-        }
-      }
-
-      // Fallback: if browser hid labels completely, test tracks to strip any 'user' facingMode camera
-      if (filtered.length === 0) {
-        filtered = videoInputs.filter(function(d) { return !isFrontFacingLabel(d.label); });
-      }
-
-      // Sort widest rear lens first
-      filtered.sort(function(a, b) {
-        return scoreRearLensPriority(b.label) - scoreRearLensPriority(a.label);
-      });
-
-      rearCameras = filtered;
-      updateLensButtonLabel();
-    }
-
-    function updateLensButtonLabel() {
-      var btn = document.getElementById('switch-lens-btn');
-      var badge = document.getElementById('lens-badge');
-      var total = Math.max(1, rearCameras.length);
-      var idx = Math.min(currentRearIndex, total - 1);
-      btn.textContent = 'Rear Lens (' + (idx + 1) + '/' + total + ')';
-      var rawLabel = (rearCameras[idx] && rearCameras[idx].label) ? rearCameras[idx].label : 'Rear Camera';
-      badge.textContent = rawLabel.replace(/\s*\([^)]*\)/g, '').trim() || 'Rear Camera';
-    }
-
-    async function switchToRearIndex(idx) {
-      if (rearCameras.length === 0) return;
-      currentRearIndex = idx % rearCameras.length;
-      var dev = rearCameras[currentRearIndex];
-      await openStreamWithConstraints({
-        deviceId: { exact: dev.deviceId },
-        width: { ideal: 1920 },
-        height: { ideal: 1440 }
-      });
-
-      // Verify track is not front-facing; if browser mislabeled a front cam, remove it and move on
-      var track = stream.getVideoTracks()[0];
-      if (track && track.getSettings) {
-        var settings = track.getSettings();
-        if (settings.facingMode === 'user' && rearCameras.length > 1) {
-          rearCameras.splice(currentRearIndex, 1);
-          return switchToRearIndex(currentRearIndex % rearCameras.length);
-        }
-      }
-
-      applyZoom(baseZoom);
-      updateLensButtonLabel();
-      prevGray = null;
-    }
-
-    async function cycleRearLens() {
-      if (rearCameras.length <= 1) return;
-      clearError();
-      setStatus('Switching rear lens...', '#facc15');
-      await switchToRearIndex(currentRearIndex + 1);
-      setStatus('Watching screen...', '#4ade80');
-    }
-
-    async function initRearCamerasAndAutoPick() {
-      clearError();
-      setStatus('Finding widest rear lens...', '#facc15');
-      await discoverRearCamerasOnly();
-
-      if (rearCameras.length > 0) {
-        await switchToRearIndex(0);
-      }
-
-      // If multiple rear lenses exist (e.g. 0.5x Ultra-Wide vs 1x Wide vs Telephoto),
-      // test up to 3 candidate rear lenses automatically to pick the widest unobstructed view
-      if (rearCameras.length > 1) {
-        await autoSelectBestRearLens();
-      } else {
-        setStatus('Watching screen...', '#4ade80');
-      }
-
-      startWatchLoop();
-    }
-
-    async function autoSelectBestRearLens() {
-      if (rearCameras.length <= 1) return;
-      var wasBusy = isBusy;
-      isBusy = true;
-      try {
-        setStatus('Auto-picking best rear lens...', '#facc15');
-        var bestIdx = 0;
-        var bestScore = -1;
-        var maxToTest = Math.min(rearCameras.length, 3);
-
-        for (var i = 0; i < maxToTest; i++) {
-          await switchToRearIndex(i);
-          await sleep(450);
-          var focusScore = measureFrameSharpnessAndSpread();
-          var labelBonus = scoreRearLensPriority(rearCameras[i].label) * 1.5;
-          var totalScore = focusScore + labelBonus;
-          if (totalScore > bestScore) {
-            bestScore = totalScore;
-            bestIdx = i;
-          }
-        }
-
-        if (currentRearIndex !== bestIdx) {
-          await switchToRearIndex(bestIdx);
-        }
-        prevGray = null;
-        setStatus('Watching screen...', '#4ade80');
-      } catch (e) {
-        setStatus('Watching screen...', '#4ade80');
-      } finally {
-        isBusy = wasBusy;
-      }
-    }
-
-    function measureFrameSharpnessAndSpread() {
-      var video = document.getElementById('video');
-      if (!video || video.readyState < 2) return 0;
-      var c = document.getElementById('diff-canvas');
-      var ctx = c.getContext('2d', { willReadFrequently: true });
-      ctx.drawImage(video, 0, 0, c.width, c.height);
-      var data = ctx.getImageData(0, 0, c.width, c.height).data;
-
-      var edgeSum = 0;
-      var w = c.width;
-      var h = c.height;
-      for (var y = 1; y < h - 1; y += 2) {
-        for (var x = 1; x < w - 1; x += 2) {
-          var idx = (y * w + x) * 4;
-          var idxRight = idx + 4;
-          var idxDown = idx + w * 4;
-          var g = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
-          var gr = (data[idxRight] + data[idxRight + 1] + data[idxRight + 2]) / 3;
-          var gd = (data[idxDown] + data[idxDown + 1] + data[idxDown + 2]) / 3;
-          edgeSum += Math.abs(g - gr) + Math.abs(g - gd);
-        }
-      }
-      return edgeSum / ((w * h) / 4);
-    }
-
-    function onZoomSliderChange() {
-      baseZoom = parseFloat(document.getElementById('zoom-slider').value) || 1.0;
-      document.getElementById('zoom-label').textContent = 'Zoom: ' + baseZoom.toFixed(2) + 'x';
-      applyZoom(baseZoom);
-      prevGray = null;
-    }
-
-    function applyZoom(targetZoom) {
-      var video = document.getElementById('video');
-      var track = stream ? stream.getVideoTracks()[0] : null;
-      var appliedHardware = false;
-
-      if (track && track.getCapabilities && track.applyConstraints) {
+    (function () {
+      function safeGet(k, fallback) {
         try {
-          var caps = track.getCapabilities();
-          if (caps.zoom) {
-            var clamped = Math.max(caps.zoom.min, Math.min(caps.zoom.max, targetZoom));
-            track.applyConstraints({ advanced: [{ zoom: clamped }] }).catch(function() {});
-            if (Math.abs(clamped - targetZoom) < 0.05) {
-              appliedHardware = true;
-            }
-          }
+          var v = window.localStorage.getItem(k);
+          return v !== null ? v : fallback;
+        } catch (e) {
+          return fallback;
+        }
+      }
+
+      function safeSet(k, v) {
+        try {
+          window.localStorage.setItem(k, v);
         } catch (e) {}
       }
 
-      if (!appliedHardware) {
-        video.style.transform = 'scale(' + targetZoom + ')';
-      } else {
-        video.style.transform = 'scale(1)';
+      function safeRemove(k) {
+        try {
+          window.localStorage.removeItem(k);
+        } catch (e) {}
       }
-    }
 
-    function startWatchLoop() {
-      clearInterval(pollTimer);
-      prevGray = null;
-      pollTimer = setInterval(pollScreenChange, 450);
-    }
+      var setupScreen = document.getElementById('setup-screen');
+      var watcherScreen = document.getElementById('watcher-screen');
+      var apiKeyInput = document.getElementById('api-key');
+      var modelSelect = document.getElementById('model-select');
+      var startBtn = document.getElementById('start-btn');
+      var setupError = document.getElementById('setup-error');
 
-    function pollScreenChange() {
-      if (!isRunning || isBusy) return;
+      var answerText = document.getElementById('answer-text');
+      var statusText = document.getElementById('status-text');
+      var diffBadge = document.getElementById('diff-badge');
+      var errorBanner = document.getElementById('error-banner');
+
+      var readNowBtn = document.getElementById('read-now-btn');
+      var hideCamBtn = document.getElementById('hide-cam-btn');
+      var settingsBtn = document.getElementById('settings-btn');
+      var stopBtn = document.getElementById('stop-btn');
+
+      var settingsDrawer = document.getElementById('settings-drawer');
+      var threshSlider = document.getElementById('thresh-slider');
+      var threshVal = document.getElementById('thresh-val');
+      var marginSlider = document.getElementById('margin-slider');
+      var marginVal = document.getElementById('margin-val');
+      var verifySlider = document.getElementById('verify-slider');
+      var verifyVal = document.getElementById('verify-val');
+      var rescanLensBtn = document.getElementById('rescan-lens-btn');
+      var forgetKeyBtn = document.getElementById('forget-key-btn');
+
+      var cameraPanel = document.getElementById('camera-panel');
       var video = document.getElementById('video');
-      if (!video || video.readyState < 2) return;
+      var cropBox = document.getElementById('crop-box');
+      var zoomSlider = document.getElementById('zoom-slider');
+      var zoomLabel = document.getElementById('zoom-label');
+      var lensBtn = document.getElementById('lens-btn');
 
-      var c = document.getElementById('diff-canvas');
-      var ctx = c.getContext('2d', { willReadFrequently: true });
-      ctx.drawImage(video, 0, 0, c.width, c.height);
-      var rgba = ctx.getImageData(0, 0, c.width, c.height).data;
+      var fullCanvas = document.getElementById('full-canvas');
+      var diffCanvas = document.getElementById('diff-canvas');
 
-      var count = c.width * c.height;
-      var gray = new Float32Array(count);
-      var mean = 0;
+      var currentStream = null;
+      var rearDevices = [];
+      var activeRearIndex = 0;
+      var pollTimer = null;
+      var settleTimer = null;
+      var isBusy = false;
+      var prevGray = null;
+      var wakeLock = null;
+      var camHidden = false;
 
-      for (var i = 0; i < count; i++) {
-        var j = i * 4;
-        var lum = 0.299 * rgba[j] + 0.587 * rgba[j + 1] + 0.114 * rgba[j + 2];
-        gray[i] = lum;
-        mean += lum;
+      // Restore saved preferences safely
+      apiKeyInput.value = safeGet('csw_api_key', '');
+      modelSelect.value = safeGet('csw_model', 'claude-sonnet-4-6');
+      threshSlider.value = safeGet('csw_thresh', '1.2');
+      threshVal.textContent = threshSlider.value + '%';
+      marginSlider.value = safeGet('csw_margin', '12');
+      marginVal.textContent = marginSlider.value + '%';
+      verifySlider.value = safeGet('csw_verify', '450');
+      verifyVal.textContent = verifySlider.value + 'ms';
+
+      function showSetupError(msg) {
+        setupError.textContent = msg;
+        setupError.style.display = 'block';
       }
-      mean /= count;
 
-      // Normalize luminance so monitor auto-exposure flicker doesn't cause false triggers
-      for (var k = 0; k < count; k++) {
-        gray[k] -= mean;
+      function clearSetupError() {
+        setupError.textContent = '';
+        setupError.style.display = 'none';
       }
 
-      if (!prevGray) {
-        prevGray = gray;
-        return;
+      function showError(msg) {
+        statusText.textContent = 'Error';
+        statusText.style.color = '#f87171';
+        errorBanner.textContent = msg;
+        errorBanner.style.display = 'block';
       }
 
-      var changed = 0;
-      for (var m = 0; m < count; m++) {
-        if (Math.abs(gray[m] - prevGray[m]) > 14) {
-          changed++;
+      function clearError() {
+        errorBanner.textContent = '';
+        errorBanner.style.display = 'none';
+      }
+
+      function setStatus(msg, color) {
+        statusText.textContent = msg;
+        statusText.style.color = color || '#4ade80';
+      }
+
+      function requestWakeLock() {
+        if (navigator.wakeLock && navigator.wakeLock.request) {
+          navigator.wakeLock.request('screen').then(function (lock) {
+            wakeLock = lock;
+          }).catch(function () {});
         }
       }
 
-      var diffPct = (changed / count) * 100;
-      document.getElementById('diff-badge').textContent = 'Diff: ' + diffPct.toFixed(1) + '%';
-      prevGray = gray;
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible' && watcherScreen.style.display === 'flex') {
+          requestWakeLock();
+        }
+      });
 
-      var threshold = parseFloat(document.getElementById('sens-slider').value) || 1.2;
-      if (diffPct >= threshold) {
-        setStatus('Change detected, settling...', '#facc15');
-        clearTimeout(settleTimer);
-        settleTimer = setTimeout(function() {
-          if (isRunning && !isBusy) {
-            runFullReadPipeline();
+      function stopStream() {
+        if (currentStream) {
+          var tracks = currentStream.getTracks();
+          for (var i = 0; i < tracks.length; i++) {
+            tracks[i].stop();
           }
-        }, 650);
+          currentStream = null;
+        }
       }
-    }
 
-    function triggerManualRead() {
-      if (!isRunning || isBusy) return;
-      clearTimeout(settleTimer);
-      runFullReadPipeline();
-    }
-
-    function captureCroppedBase64(box) {
-      var video = document.getElementById('video');
-      var vw = video.videoWidth || 1920;
-      var vh = video.videoHeight || 1440;
-
-      var x1 = box ? box.x1 : 0;
-      var y1 = box ? box.y1 : 0;
-      var x2 = box ? box.x2 : 1;
-      var y2 = box ? box.y2 : 1;
-
-      var sx = Math.max(0, Math.floor(x1 * vw));
-      var sy = Math.max(0, Math.floor(y1 * vh));
-      var sw = Math.max(64, Math.floor((x2 - x1) * vw));
-      var sh = Math.max(64, Math.floor((y2 - y1) * vh));
-
-      var maxDim = 1500;
-      var scale = Math.min(1, maxDim / Math.max(sw, sh));
-      var canvas = document.getElementById('capture-canvas');
-      canvas.width = Math.round(sw * scale);
-      canvas.height = Math.round(sh * scale);
-
-      var ctx = canvas.getContext('2d');
-      ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-      var dataUrl = canvas.toDataURL('image/jpeg', 0.86);
-      return dataUrl.split(',').pop();
-    }
-
-    function showCropOverlay(box) {
-      var overlay = document.getElementById('crop-overlay');
-      if (!box) {
-        overlay.style.display = 'none';
-        return;
+      function isFrontLabel(label) {
+        var s = (label || '').toLowerCase();
+        return (
+          s.indexOf('front') !== -1 ||
+          s.indexOf('user') !== -1 ||
+          s.indexOf('selfie') !== -1 ||
+          s.indexOf('facetime') !== -1 ||
+          s.indexOf('truedepth') !== -1
+        );
       }
-      overlay.style.left = (box.x1 * 100).toFixed(1) + '%';
-      overlay.style.top = (box.y1 * 100).toFixed(1) + '%';
-      overlay.style.width = ((box.x2 - box.x1) * 100).toFixed(1) + '%';
-      overlay.style.height = ((box.y2 - box.y1) * 100).toFixed(1) + '%';
-      overlay.style.display = 'block';
-    }
 
-    async function callClaude(systemPrompt, userPrompt, base64Image, maxTokens) {
-      var apiKey = safeGet('claude_watcher_key', '').trim();
-      var model = safeGet('claude_watcher_model', 'claude-sonnet-4-6');
+      function lensPriorityScore(label) {
+        var s = (label || '').toLowerCase();
+        if (s.indexOf('ultra') !== -1 || s.indexOf('0.5') !== -1 || s.indexOf('wide-angle') !== -1) return 100;
+        if (s.indexOf('dual') !== -1 || s.indexOf('triple') !== -1) return 80;
+        if (s.indexOf('back') !== -1 || s.indexOf('rear') !== -1 || s.indexOf('environment') !== -1) return 60;
+        if (s.indexOf('tele') !== -1 || s.indexOf('2x') !== -1 || s.indexOf('3x') !== -1 || s.indexOf('5x') !== -1) return 20;
+        return 40;
+      }
 
-      var contentArr = [];
-      if (base64Image) {
-        contentArr.push({
-          type: 'image',
-          source: {
-            type: 'base64',
-            media_type: 'image/jpeg',
-            data: base64Image
+      function discoverRearCameras(callback) {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+          rearDevices = [];
+          callback();
+          return;
+        }
+        navigator.mediaDevices.enumerateDevices().then(function (devices) {
+          var filtered = [];
+          for (var i = 0; i < devices.length; i++) {
+            var d = devices[i];
+            if (d.kind === 'videoinput' && !isFrontLabel(d.label)) {
+              filtered.push(d);
+            }
           }
+          filtered.sort(function (a, b) {
+            return lensPriorityScore(b.label) - lensPriorityScore(a.label);
+          });
+          rearDevices = filtered;
+          callback();
+        }).catch(function () {
+          rearDevices = [];
+          callback();
         });
       }
-      contentArr.push({
-        type: 'text',
-        text: userPrompt
-      });
 
-      var resp = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        },
-        body: JSON.stringify({
-          model: model,
-          max_tokens: maxTokens || 350,
-          system: systemPrompt,
-          messages: [{ role: 'user', content: contentArr }]
-        })
-      });
-
-      var rawText = await resp.text();
-      var parsed = null;
-      try { parsed = JSON.parse(rawText); } catch (e) {}
-
-      if (!resp.ok) {
-        var errType = parsed && parsed.error && parsed.error.type ? parsed.error.type : 'http_error';
-        var errMsg = parsed && parsed.error && parsed.error.message ? parsed.error.message : rawText;
-        throw new Error('HTTP ' + resp.status + ' (' + errType + '): ' + errMsg);
-      }
-
-      if (parsed && Array.isArray(parsed.content)) {
-        var textBlock = parsed.content.find(function(b) { return b.type === 'text'; });
-        return textBlock ? textBlock.text.trim() : '';
-      }
-      return '';
-    }
-
-    function normalizeWords(str) {
-      return (str || '')
-        .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, ' ')
-        .split(/\s+/)
-        .filter(Boolean);
-    }
-
-    function computeWordSimilarity(a, b) {
-      var wa = normalizeWords(a);
-      var wb = normalizeWords(b);
-      if (wa.length === 0 && wb.length === 0) return 1.0;
-      if (wa.length === 0 || wb.length === 0) return 0.0;
-
-      var freq = {};
-      for (var i = 0; i < wa.length; i++) {
-        freq[wa[i]] = (freq[wa[i]] || 0) + 1;
-      }
-      var matches = 0;
-      for (var j = 0; j < wb.length; j++) {
-        if (freq[wb[j]] > 0) {
-          matches++;
-          freq[wb[j]]--;
+      function applyZoomValue(val) {
+        var z = parseFloat(val) || 1.0;
+        zoomLabel.textContent = 'Zoom ' + z.toFixed(2) + 'x';
+        if (currentStream) {
+          var tracks = currentStream.getVideoTracks();
+          if (tracks.length > 0 && tracks[0].getCapabilities && tracks[0].applyConstraints) {
+            var caps = tracks[0].getCapabilities();
+            if (caps && caps.zoom) {
+              var clamped = Math.max(caps.zoom.min, Math.min(caps.zoom.max, z));
+              tracks[0].applyConstraints({ advanced: [{ zoom: clamped }] }).catch(function () {});
+            }
+          }
+        }
+        if (z < 1.0) {
+          video.style.transform = 'scale(' + z.toFixed(2) + ')';
+        } else {
+          video.style.transform = 'scale(1)';
         }
       }
-      return (2 * matches) / (wa.length + wb.length);
-    }
 
-    function sleep(ms) {
-      return new Promise(function(resolve) { setTimeout(resolve, ms); });
-    }
+      function openRearCameraByIndex(idx, onOpened, onFailed) {
+        stopStream();
+        var constraints;
+        if (rearDevices.length > 0 && idx >= 0 && idx < rearDevices.length && rearDevices[idx].deviceId) {
+          constraints = {
+            audio: false,
+            video: {
+              deviceId: { exact: rearDevices[idx].deviceId },
+              width: { ideal: 1920 },
+              height: { ideal: 1440 }
+            }
+          };
+        } else {
+          constraints = {
+            audio: false,
+            video: {
+              facingMode: { exact: 'environment' },
+              width: { ideal: 1920 },
+              height: { ideal: 1440 }
+            }
+          };
+        }
 
-    async function runFullReadPipeline() {
-      isBusy = true;
-      clearError();
-
-      try {
-        // Step 1: Locate full readable content area on the wide frame
-        setStatus('Locating full text block...', '#facc15');
-        var wideImg = captureCroppedBase64(null);
-        var boxReply = await callClaude(
-          'You locate all readable text content on a computer monitor photo. Return ONLY valid JSON with normalized coordinates 0.0 to 1.0 enclosing ALL readable paragraphs, questions, and answer options on the screen from left edge to right edge and top to bottom: {"has_text":true,"x1":0.0,"y1":0.0,"x2":1.0,"y2":1.0}. If no readable text exists, return {"has_text":false}.',
-          'Find the bounding box containing ALL readable text content on this monitor. Do not cut off the left edge or any question text.',
-          wideImg,
-          120
-        );
-
-        var cropBox = { x1: 0, y1: 0, x2: 1, y2: 1 };
-        try {
-          var jsonMatch = boxReply.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            var parsedBox = JSON.parse(jsonMatch[0]);
-            if (parsedBox.has_text === false) {
-              setStatus('No text detected on screen', '#4ade80');
-              prevGray = null;
+        navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {
+          var tracks = stream.getVideoTracks();
+          if (tracks.length > 0 && tracks[0].getSettings) {
+            var settings = tracks[0].getSettings();
+            if (settings.facingMode === 'user') {
+              tracks[0].stop();
+              if (onFailed) onFailed(new Error('Skipped front-facing camera'));
               return;
             }
-            var margin = (parseFloat(document.getElementById('margin-slider').value) || 12) / 100;
-            var rawX1 = Math.max(0, (parsedBox.x1 || 0) - margin);
-            // Left-margin safety: snap to 0.0 if close to left side so left-aligned text never clips
-            if (rawX1 < 0.24) rawX1 = 0;
-            var rawY1 = Math.max(0, (parsedBox.y1 || 0) - margin);
-            var rawX2 = Math.min(1, (parsedBox.x2 || 1) + margin);
-            if (rawX2 > 0.85) rawX2 = 1;
-            var rawY2 = Math.min(1, (parsedBox.y2 || 1) + margin);
+          }
+          currentStream = stream;
+          video.srcObject = stream;
+          video.play().then(function () {
+            activeRearIndex = idx;
+            var total = rearDevices.length > 0 ? rearDevices.length : 1;
+            lensBtn.textContent = 'Rear Lens ' + (activeRearIndex + 1) + '/' + total;
+            applyZoomValue(zoomSlider.value);
+            prevGray = null;
+            if (onOpened) onOpened();
+          }).catch(function (err) {
+            if (onFailed) onFailed(err);
+          });
+        }).catch(function (err) {
+          // Fallback to non-exact environment constraint if exact failed
+          navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1440 } }
+          }).then(function (stream2) {
+            currentStream = stream2;
+            video.srcObject = stream2;
+            video.play().then(function () {
+              activeRearIndex = 0;
+              lensBtn.textContent = 'Rear Lens 1/1';
+              applyZoomValue(zoomSlider.value);
+              prevGray = null;
+              if (onOpened) onOpened();
+            }).catch(function (e2) {
+              if (onFailed) onFailed(e2);
+            });
+          }).catch(function (e3) {
+            if (onFailed) onFailed(e3);
+          });
+        });
+      }
 
-            if ((rawX2 - rawX1) > 0.2 && (rawY2 - rawY1) > 0.15) {
-              cropBox = { x1: rawX1, y1: rawY1, x2: rawX2, y2: rawY2 };
+      function autoSelectBestRearLens(done) {
+        setStatus('Scanning rear lenses...', '#facc15');
+        discoverRearCameras(function () {
+          if (rearDevices.length <= 1) {
+            openRearCameraByIndex(0, function () {
+              diffBadge.textContent = 'Diff: 0.0% | Lens: 1/1';
+              if (done) done();
+            }, function (err) {
+              showError('Camera error: ' + (err && err.message ? err.message : String(err)));
+            });
+            return;
+          }
+
+          var maxToTest = Math.min(3, rearDevices.length);
+          var bestIdx = 0;
+          var bestScore = -1;
+          var testIdx = 0;
+
+          function evaluateCurrentFrame(idx) {
+            var w = 160;
+            var h = 120;
+            diffCanvas.width = w;
+            diffCanvas.height = h;
+            var ctx = diffCanvas.getContext('2d', { willReadFrequently: true });
+            ctx.drawImage(video, 0, 0, w, h);
+            var data = ctx.getImageData(0, 0, w, h).data;
+            var edgeSum = 0;
+            for (var y = 1; y < h - 1; y++) {
+              for (var x = 1; x < w - 1; x++) {
+                var p = (y * w + x) * 4;
+                var pl = (y * w + (x - 1)) * 4;
+                var lum = 0.299 * data[p] + 0.587 * data[p + 1] + 0.114 * data[p + 2];
+                var lumL = 0.299 * data[pl] + 0.587 * data[pl + 1] + 0.114 * data[pl + 2];
+                edgeSum += Math.abs(lum - lumL);
+              }
             }
-          }
-        } catch (e) {}
-
-        showCropOverlay(cropBox);
-
-        // Step 2: Double-read stability verification (until two consecutive reads match >= 92%)
-        var prevTranscript = null;
-        var verifiedTranscript = null;
-
-        for (var attempt = 1; attempt <= 5; attempt++) {
-          if (!isRunning) return;
-          setStatus('Verifying screen text (' + attempt + '/5)...', '#facc15');
-          var cropImg = captureCroppedBase64(cropBox);
-          var transcript = await callClaude(
-            'Transcribe ALL visible text in this cropped monitor image accurately from top to bottom. Output ONLY the raw transcribed text, nothing else.',
-            'Transcribe all visible text cleanly.',
-            cropImg,
-            700
-          );
-
-          if (!transcript || transcript.length < 4) {
-            prevTranscript = null;
-            await sleep(450);
-            continue;
+            var priority = lensPriorityScore(rearDevices[idx].label);
+            return priority * 100 + edgeSum / (w * h);
           }
 
-          if (prevTranscript !== null) {
-            var sim = computeWordSimilarity(prevTranscript, transcript);
-            if (sim >= 0.92) {
-              verifiedTranscript = transcript;
-              break;
+          function testNext() {
+            if (testIdx >= maxToTest) {
+              openRearCameraByIndex(bestIdx, function () {
+                diffBadge.textContent = 'Diff: 0.0% | Lens: ' + (bestIdx + 1) + '/' + rearDevices.length;
+                if (done) done();
+              }, function (err) {
+                showError('Camera error: ' + (err && err.message ? err.message : String(err)));
+              });
+              return;
             }
+            var idx = testIdx;
+            testIdx++;
+            openRearCameraByIndex(idx, function () {
+              setTimeout(function () {
+                var score = evaluateCurrentFrame(idx);
+                if (score > bestScore) {
+                  bestScore = score;
+                  bestIdx = idx;
+                }
+                testNext();
+              }, 350);
+            }, function () {
+              testNext();
+            });
           }
 
-          prevTranscript = transcript;
-          await sleep(450);
+          testNext();
+        });
+      }
+
+      function computeScreenDiffPercent() {
+        if (!video || video.readyState < 2) return 0;
+        var w = 160;
+        var h = 120;
+        diffCanvas.width = w;
+        diffCanvas.height = h;
+        var ctx = diffCanvas.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(video, 0, 0, w, h);
+        var rgba = ctx.getImageData(0, 0, w, h).data;
+        var total = w * h;
+        var gray = new Float32Array(total);
+        var sum = 0;
+
+        for (var i = 0; i < total; i++) {
+          var p = i * 4;
+          var lum = 0.299 * rgba[p] + 0.587 * rgba[p + 1] + 0.114 * rgba[p + 2];
+          gray[i] = lum;
+          sum += lum;
+        }
+        var mean = sum / total || 1;
+        for (var j = 0; j < total; j++) {
+          gray[j] = (gray[j] / mean) * 128;
         }
 
-        if (!verifiedTranscript) {
-          verifiedTranscript = prevTranscript;
+        if (!prevGray || prevGray.length !== total) {
+          prevGray = gray;
+          return 0;
         }
 
-        if (!verifiedTranscript) {
-          setStatus('Could not stabilize text', '#facc15');
+        var changed = 0;
+        for (var k = 0; k < total; k++) {
+          if (Math.abs(gray[k] - prevGray[k]) > 18) {
+            changed++;
+          }
+        }
+        prevGray = gray;
+        return (changed / total) * 100;
+      }
+
+      function captureCroppedBase64(box) {
+        var vw = video.videoWidth || 1600;
+        var vh = video.videoHeight || 1200;
+        var x1 = 0, y1 = 0, x2 = 1, y2 = 1;
+        if (box && box.length === 4) {
+          x1 = Math.max(0, Math.min(0.95, box[0]));
+          y1 = Math.max(0, Math.min(0.95, box[1]));
+          x2 = Math.max(x1 + 0.05, Math.min(1, box[2]));
+          y2 = Math.max(y1 + 0.05, Math.min(1, box[3]));
+        }
+        var sx = Math.round(x1 * vw);
+        var sy = Math.round(y1 * vh);
+        var sw = Math.max(64, Math.round((x2 - x1) * vw));
+        var sh = Math.max(64, Math.round((y2 - y1) * vh));
+
+        var maxDim = 1400;
+        var scale = Math.min(1, maxDim / Math.max(sw, sh));
+        fullCanvas.width = Math.round(sw * scale);
+        fullCanvas.height = Math.round(sh * scale);
+
+        var ctx = fullCanvas.getContext('2d');
+        ctx.drawImage(video, sx, sy, sw, sh, 0, 0, fullCanvas.width, fullCanvas.height);
+        var dataUrl = fullCanvas.toDataURL('image/jpeg', 0.85);
+        var idx = dataUrl.indexOf(',');
+        return idx !== -1 ? dataUrl.slice(idx + 1) : '';
+      }
+
+      function callClaude(systemPrompt, userPrompt, base64Img, maxTokens) {
+        var apiKey = safeGet('csw_api_key', '').trim();
+        var model = safeGet('csw_model', 'claude-sonnet-4-6');
+
+        return fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: JSON.stringify({
+            model: model,
+            max_tokens: maxTokens || 350,
+            system: systemPrompt,
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'image',
+                    source: {
+                      type: 'base64',
+                      media_type: 'image/jpeg',
+                      data: base64Img
+                    }
+                  },
+                  {
+                    type: 'text',
+                    text: userPrompt
+                  }
+                ]
+              }
+            ]
+          })
+        }).then(function (res) {
+          return res.json().then(function (json) {
+            if (!res.ok) {
+              var errType = json && json.error && json.error.type ? json.error.type : 'HTTP_' + res.status;
+              var errMsg = json && json.error && json.error.message ? json.error.message : JSON.stringify(json);
+              throw new Error('HTTP ' + res.status + ' (' + errType + '): ' + errMsg);
+            }
+            var text = '';
+            if (json && Array.isArray(json.content)) {
+              for (var i = 0; i < json.content.length; i++) {
+                if (json.content[i].type === 'text') {
+                  text += json.content[i].text;
+                }
+              }
+            }
+            return text.trim();
+          });
+        });
+      }
+
+      function wordSimilarity(a, b) {
+        var wa = a.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
+        var wb = b.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
+        if (wa.length === 0 && wb.length === 0) return 1;
+        if (wa.length === 0 || wb.length === 0) return 0;
+        var setB = {};
+        for (var i = 0; i < wb.length; i++) {
+          setB[wb[i]] = (setB[wb[i]] || 0) + 1;
+        }
+        var matches = 0;
+        for (var j = 0; j < wa.length; j++) {
+          if (setB[wa[j]] && setB[wa[j]] > 0) {
+            matches++;
+            setB[wa[j]]--;
+          }
+        }
+        return (2 * matches) / (wa.length + wb.length);
+      }
+
+      function runFullPipeline() {
+        if (isBusy || !video || video.readyState < 2) return;
+        isBusy = true;
+        clearError();
+        setStatus('1/3 Locating full text block...', '#facc15');
+
+        var wideB64 = captureCroppedBase64([0, 0, 1, 1]);
+        var locateSys = 'You locate ALL readable text content on a computer monitor photo. Return ONLY a JSON array of 4 normalized floats [x1, y1, x2, y2] between 0 and 1 enclosing ALL readable words, paragraphs, questions, and answer options visible on the screen from top to bottom and left to right. Do NOT narrow to just one paragraph. If no screen text is visible, return [0, 0, 1, 1]. Output ONLY the JSON array.';
+
+        callClaude(locateSys, 'Return [x1, y1, x2, y2] enclosing all readable text on the monitor.', wideB64, 80)
+          .then(function (boxText) {
+            var box = [0, 0, 1, 1];
+            var match = boxText.match(/\[\s*([0-9.]+)\s*,\s*([0-9.]+)\s*,\s*([0-9.]+)\s*,\s*([0-9.]+)\s*\]/);
+            if (match) {
+              var margin = (parseFloat(marginSlider.value) || 12) / 100;
+              var bx1 = Math.max(0, parseFloat(match[1]) - margin);
+              var by1 = Math.max(0, parseFloat(match[2]) - margin);
+              var bx2 = Math.min(1, parseFloat(match[3]) + margin);
+              var by2 = Math.min(1, parseFloat(match[4]) + margin);
+              // Left-margin protection so left-aligned text never clips
+              if (bx1 < 0.22) bx1 = 0;
+              if (bx2 - bx1 > 0.15 && by2 - by1 > 0.1) {
+                box = [bx1, by1, bx2, by2];
+              }
+            }
+
+            // Show visual highlight box on preview
+            cropBox.style.left = (box[0] * 100).toFixed(1) + '%';
+            cropBox.style.top = (box[1] * 100).toFixed(1) + '%';
+            cropBox.style.width = ((box[2] - box[0]) * 100).toFixed(1) + '%';
+            cropBox.style.height = ((box[3] - box[1]) * 100).toFixed(1) + '%';
+            cropBox.style.display = 'block';
+
+            // Double-read verification loop until 2 consecutive reads match
+            var verifyDelay = parseInt(verifySlider.value, 10) || 450;
+            var attempt = 0;
+            var maxAttempts = 5;
+            var lastTranscript = '';
+
+            function verifyNext() {
+              attempt++;
+              setStatus('2/3 Verifying screen text (' + attempt + '/' + maxAttempts + ')...', '#38bdf8');
+              var cropB64 = captureCroppedBase64(box);
+              var ocrSys = 'Transcribe the readable text on this monitor crop verbatim from top to bottom. Output ONLY the plain text visible on the screen with no commentary.';
+
+              return callClaude(ocrSys, 'Transcribe the visible monitor text verbatim.', cropB64, 500)
+                .then(function (transcript) {
+                  if (attempt > 1 && wordSimilarity(lastTranscript, transcript) >= 0.92) {
+                    return { transcript: transcript, cropB64: cropB64 };
+                  }
+                  lastTranscript = transcript;
+                  if (attempt >= maxAttempts) {
+                    return { transcript: transcript, cropB64: cropB64 };
+                  }
+                  return new Promise(function (resolve) {
+                    setTimeout(function () {
+                      resolve(verifyNext());
+                    }, verifyDelay);
+                  });
+                });
+            }
+
+            return verifyNext();
+          })
+          .then(function (verified) {
+            setStatus('3/3 Solving complete question...', '#c084fc');
+            var solveSys =
+              'You are reading a computer monitor image along with its verified OCR text. ' +
+              'Scan from top to bottom to see where each question begins and ends. ' +
+              'Ignore any partial or cut-off question at the top or bottom edge of the screen. ' +
+              'Find the question that is COMPLETELY visible on the screen (including all its answer choices if multiple choice). ' +
+              'Output ONLY the direct final answer (for multiple choice, output the letter and exact option text). ' +
+              'Do NOT repeat, quote, or summarize the question. Do NOT include any lead-in words like "The answer is". ' +
+              'If there is no complete question visible on screen, output the exact word NONE.';
+
+            var solvePrompt = 'Verified screen text:\n' + verified.transcript + '\n\nProvide ONLY the direct answer to the completely visible question, or NONE.';
+            return callClaude(solveSys, solvePrompt, verified.cropB64, 250);
+          })
+          .then(function (answer) {
+            cropBox.style.display = 'none';
+            if (answer && answer.toUpperCase() !== 'NONE') {
+              answerText.classList.remove('placeholder');
+              answerText.textContent = answer;
+              setStatus('Answered — watching for next...', '#4ade80');
+            } else {
+              setStatus('No complete question — watching...', '#4ade80');
+            }
+            prevGray = null;
+            isBusy = false;
+          })
+          .catch(function (err) {
+            cropBox.style.display = 'none';
+            showError(err && err.message ? err.message : String(err));
+            prevGray = null;
+            isBusy = false;
+          });
+      }
+
+      function startPollingLoop() {
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = setInterval(function () {
+          if (isBusy || watcherScreen.style.display !== 'flex') return;
+          var diff = computeScreenDiffPercent();
+          var thresh = parseFloat(threshSlider.value) || 1.2;
+          var lensLabel = (activeRearIndex + 1) + '/' + (rearDevices.length || 1);
+          diffBadge.textContent = 'Diff: ' + diff.toFixed(1) + '% | Lens: ' + lensLabel;
+
+          if (diff >= thresh) {
+            setStatus('Change detected — settling...', '#facc15');
+            if (settleTimer) clearTimeout(settleTimer);
+            settleTimer = setTimeout(function () {
+              runFullPipeline();
+            }, 650);
+          }
+        }, 500);
+      }
+
+      // Bind Start Watching button cleanly
+      startBtn.addEventListener('click', function () {
+        clearSetupError();
+        var key = (apiKeyInput.value || '').trim();
+        if (!key) {
+          showSetupError('Please paste your Anthropic API key (starts with sk-ant-...) before starting.');
           return;
         }
+        safeSet('csw_api_key', key);
+        safeSet('csw_model', modelSelect.value);
 
-        // Step 3: Solve ONLY the completely visible question and output ONLY the direct answer
-        setStatus('Solving complete question...', '#38bdf8');
-        var finalCropImg = captureCroppedBase64(cropBox);
-        var answer = await callClaude(
-          'You are solving a question shown on a computer screen. Analyze where each question begins and ends. Ignore any partial or cut-off question at the very top or bottom edge of the screen. Identify the question that is COMPLETELY visible on the screen (including all its answer choices if multiple-choice) and output ONLY the final direct answer. Never repeat, quote, or summarize the question. Never include introductory filler like "The answer is". If there is no complete question visible, reply with the exact word NONE.',
-          'Verified screen text:
-' + verifiedTranscript + '
+        setupScreen.style.display = 'none';
+        watcherScreen.style.display = 'flex';
+        clearError();
 
-Return ONLY the direct answer to the completely visible question, or NONE.',
-          finalCropImg,
-          300
-        );
+        requestWakeLock();
+        autoSelectBestRearLens(function () {
+          setStatus('Watching screen...', '#4ade80');
+          startPollingLoop();
+          setTimeout(function () {
+            runFullPipeline();
+          }, 900);
+        });
+      });
 
-        if (answer && answer.toUpperCase() !== 'NONE') {
-          var ansEl = document.getElementById('answer-text');
-          ansEl.classList.remove('placeholder');
-          ansEl.textContent = answer;
-          setStatus('Answer updated', '#4ade80');
-        } else {
-          setStatus('No complete question found', '#4ade80');
-        }
-      } catch (err) {
-        showError(err.message || String(err));
-      } finally {
-        setTimeout(function() {
-          showCropOverlay(null);
-        }, 900);
-        prevGray = null;
+      readNowBtn.addEventListener('click', function () {
+        if (settleTimer) clearTimeout(settleTimer);
+        runFullPipeline();
+      });
+
+      hideCamBtn.addEventListener('click', function () {
+        camHidden = !camHidden;
+        cameraPanel.style.display = camHidden ? 'none' : 'flex';
+        hideCamBtn.textContent = camHidden ? 'Show cam' : 'Hide cam';
+      });
+
+      settingsBtn.addEventListener('click', function () {
+        var open = settingsDrawer.style.display === 'flex';
+        settingsDrawer.style.display = open ? 'none' : 'flex';
+      });
+
+      stopBtn.addEventListener('click', function () {
+        if (pollTimer) clearInterval(pollTimer);
+        if (settleTimer) clearTimeout(settleTimer);
+        stopStream();
         isBusy = false;
-      }
-    }
+        watcherScreen.style.display = 'none';
+        setupScreen.style.display = 'flex';
+      });
+
+      zoomSlider.addEventListener('input', function () {
+        applyZoomValue(zoomSlider.value);
+      });
+
+      lensBtn.addEventListener('click', function () {
+        if (rearDevices.length <= 1) {
+          autoSelectBestRearLens(function () {
+            setStatus('Watching screen...', '#4ade80');
+          });
+          return;
+        }
+        var nextIdx = (activeRearIndex + 1) % rearDevices.length;
+        setStatus('Switching rear lens...', '#facc15');
+        openRearCameraByIndex(nextIdx, function () {
+          setStatus('Watching screen...', '#4ade80');
+        }, function (err) {
+          showError('Lens switch error: ' + (err && err.message ? err.message : String(err)));
+        });
+      });
+
+      rescanLensBtn.addEventListener('click', function () {
+        autoSelectBestRearLens(function () {
+          setStatus('Watching screen...', '#4ade80');
+        });
+      });
+
+      forgetKeyBtn.addEventListener('click', function () {
+        safeRemove('csw_api_key');
+        apiKeyInput.value = '';
+        stopBtn.click();
+      });
+
+      threshSlider.addEventListener('input', function () {
+        threshVal.textContent = threshSlider.value + '%';
+        safeSet('csw_thresh', threshSlider.value);
+      });
+
+      marginSlider.addEventListener('input', function () {
+        marginVal.textContent = marginSlider.value + '%';
+        safeSet('csw_margin', marginSlider.value);
+      });
+
+      verifySlider.addEventListener('input', function () {
+        verifyVal.textContent = verifySlider.value + 'ms';
+        safeSet('csw_verify', verifySlider.value);
+      });
+    })();
   </script>
 </body>
 </html>
